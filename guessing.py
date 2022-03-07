@@ -44,12 +44,15 @@ def end_game():
         print(key,"\t\t",guessed[key])
 
 def play_game(set_of_pokemon,guessed):
+    # counter of correct guesses
     idx = 0
 
+    # the game continues as long as idx is less than the total number of Pokémon in play
     while idx < len(set_of_pokemon):
         print("Enter your guess: ",end='')
         guess = input()
 
+        # logic to parse the user input
         if guess == 'p': print_guessed(guessed,guess)
 
         elif guess == 'p1':
@@ -81,13 +84,31 @@ def play_game(set_of_pokemon,guessed):
             print_guessed(guessed,guess)
 
         elif guess == 'r':
+            # show the progress to the user
             remain = len(set_of_pokemon) - idx
             if remain == len(set_of_pokemon) - 1:
                 print(f"You have {idx} correct guess, meaning there is {remain} left to guess.")
+                # print a progress bar, showing the percentage of the progress
+                progress = int(100*idx/len(set_of_pokemon))
+                for i in range(100):
+                    if i < progress:
+                        print(chr(9646),end='')
+                    else:
+                        print(chr(9647),end='')
+
+                print("")
             else:
                 print(f"You have {idx} correct guesses, meaning there is {remain} left to guess.")
-                print(chr(2588))
+                # print a progress bar, showing the percentage of the progress
+                progress = int(100*idx/len(set_of_pokemon))
+                for i in range(100):
+                    if i < progress:
+                        print(chr(9646),end='')
+                    else:
+                        print(chr(9647),end='')
 
+                print("")
+                
         elif guess == 'q': exit("Quiting!")
 
         elif guess == 'h':
