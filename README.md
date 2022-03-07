@@ -4,13 +4,10 @@ A simple memory game utilizing Pokémon. The goal is to guess all the Pokémon i
 
 ## To be fixed
 - Adding generation 8
-- Fixing formatting errors on some of the Pokémon. These being:
-    1. Mr. Mime
-    2. Gardevoir
-    3. Mime Jr.
-    4. Tapu Lele
-    5. Solgaleo
-    6. Sigilyph
-- Adding a progress bar
+
 - Save feature
 - Maybe more
+
+## Fixed
+- Fixing formatting errors on some of the Pokémon. (:heavy_check_mark:)
+- Adding a progress bar                            (:heavy_check_mark:)
