@@ -138,17 +138,22 @@ def play_game(set_of_pokemon,guessed):
                 print("Not in the Pokédex. Perhaps a typo? Try again.")
 
 if __name__ == '__main__':
+    # prompt the user with some useful commands to get started
     print("==== Pokémon Guessing Game ==== [press h for help or r to show progress]")
 
-    # the user can input the generation wanted in the game, the supported generations being 1-7.
+    # the user can input the generation wanted in the game, the supported generations are 1-7 (so far)
     if len(sys.argv) > 8: exit("Too many arguments, exiting.")
 
+    # initialize the generations used as empty
     gens = []
     valid_gens = ['1','2','3','4','5','6','7']
 
+    # determine which generations to add, if len(sys.argv) > 1 the user has entered command line arguments
     if len(sys.argv) > 1:
+        # loop through the arguments in the argument vector
         for entry in sys.argv:
             for tmp in valid_gens:
+                # if entry == tmp, then add this generation to the gens used in the game
                 if entry == tmp:
                     # if the entry in the argument vector contains a valid generation 
                     # it is added to the gens list 
@@ -160,8 +165,10 @@ if __name__ == '__main__':
     # sort the generations
     gens.sort()
 
+    # initialize the dictionary of all the Pokémon
     set_of_pokemon = {}
 
+    # go through the Pokédex
     for pokemon_entry in dex.Pokedex:
         name = pokemon_entry[0]
         dex_number = pokemon_entry[1]
@@ -169,13 +176,17 @@ if __name__ == '__main__':
         type1 = pokemon_entry[3]
         type2 = pokemon_entry[4]
 
+        # if a Pokémon is in a generation that the user wants, add it to the dictionary of all Pokémon
         if gen in gens:
             set_of_pokemon[dex_number] = pkm.Pokemon(name,dex_number,int(gen),type1,type2)
 
+    # initialize the guessed dictionary (empty at the start)
     guessed = {}
 
+    # add all the Pokémon as '?' at the start
     for key in set_of_pokemon:
         guessed[key] = '?'
 
+    # start the game
     play_game(set_of_pokemon,guessed)
     end_game()
