@@ -811,17 +811,21 @@ pokedex_length = len(Pokedex)
 max_string_length = 7
 
 def print_types(guess,set_of_pokemon,guessed):
-    str = ""
+    string = ""
     for key in set_of_pokemon:
         if set_of_pokemon[key].type1 == guess or set_of_pokemon[key].type2 == guess:
             if len(guessed[key]) <= max_string_length:
                 if len(set_of_pokemon[key].type1) <= max_string_length:
-                    str = f"{key}\t\t{guessed[key]}\t\t\t{set_of_pokemon[key].type1}\t\t{set_of_pokemon[key].type2}"
+                    # if the type length is less than or equal to 7 print using two tabs
+                    string = f"{key}\t\t{guessed[key]}\t\t\t{set_of_pokemon[key].type1}\t\t{set_of_pokemon[key].type2}"
                 else:
-                    str = f"{key}\t\t{guessed[key]}\t\t\t{set_of_pokemon[key].type1}\t{set_of_pokemon[key].type2}"
+                    # otherwise, use only one tab
+                    string = f"{key}\t\t{guessed[key]}\t\t\t{set_of_pokemon[key].type1}\t{set_of_pokemon[key].type2}"
             else:
+                    # if the Pokémon name length is greater than 7 we only need one tab
                 if len(set_of_pokemon[key].type1) <= max_string_length:
-                    str = f"{key}\t\t{guessed[key]}\t\t{set_of_pokemon[key].type1}\t\t{set_of_pokemon[key].type2}"
+                    string = f"{key}\t\t{guessed[key]}\t\t{set_of_pokemon[key].type1}\t\t{set_of_pokemon[key].type2}"
                 else:
-                    str = f"{key}\t\t{guessed[key]}\t\t{set_of_pokemon[key].type1}\t{set_of_pokemon[key].type2}"
-            print(str)
+                    # same handling as the previous statement
+                    string = f"{key}\t\t{guessed[key]}\t\t{set_of_pokemon[key].type1}\t{set_of_pokemon[key].type2}"
+            print(string)
