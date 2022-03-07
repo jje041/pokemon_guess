@@ -84,7 +84,6 @@ def play_game(set_of_pokemon,guessed):
             remain = len(set_of_pokemon) - idx
             if remain == len(set_of_pokemon) - 1:
                 print(f"You have {idx} correct guess, meaning there is {remain} left to guess.")
-                b'\x17'.decode('cp437')
             else:
                 print(f"You have {idx} correct guesses, meaning there is {remain} left to guess.")
                 print(chr(2588))
@@ -117,19 +116,26 @@ def play_game(set_of_pokemon,guessed):
             print("Finally! You can type q to quit.")
             print("Enjoy!")
 
-
         elif pkm.is_valid_type(guess):
             guess = pkm.parse_guess(guess)
             dex.print_types(guess,set_of_pokemon,guessed)
         else:
             tmp = idx
+            duplicate = False
             for key,val in set_of_pokemon.items():
-                if val.name == guess and guessed[key] == '?':
-                    guessed[val.dex_number] = val.name
-                    idx += 1
-                    break
-            if tmp == idx:
-                print("Not in the Pokédex or already in. Try again.")
+                if val.name == guess:
+                    if guessed[key] == '?':
+                        guessed[val.dex_number] = val.name
+                        idx += 1
+                        break
+                    else:
+                        print("Already in the Pokédex.")
+                        duplicate = True
+                        break
+                else:
+                    pass
+            if tmp == idx and duplicate == False:
+                print("Not in the Pokédex. Perhaps a typo? Try again.")
 
 if __name__ == '__main__':
     print("==== Pokémon Guessing Game ==== [press h for help or r to show progress]")
