@@ -820,7 +820,7 @@ def print_types(guess,set_of_pokemon,guessed):
                 else:
                     str = "{}\t\t{}\t\t\t{}\t{}".format(key,guessed[key],set_of_pokemon[key].type1,set_of_pokemon[key].type2)
             else:
-                if len(set_of_pokemon[key].type1) < max_string_length:
+                if len(set_of_pokemon[key].type1) <= max_string_length:
                     str = "{}\t\t{}\t\t{}\t\t{}".format(key,guessed[key],set_of_pokemon[key].type1,set_of_pokemon[key].type2)
                 else:
                     str = "{}\t\t{}\t\t{}\t{}".format(key,guessed[key],set_of_pokemon[key].type1,set_of_pokemon[key].type2)
