@@ -5,25 +5,18 @@ import pokedex as dex
 # function to help with the printing
 def print_guessed(guessed,guess):
     # firstly, determine which generation to print
-    if guess == 'p1':
-        gen_range = [1,152]
-    elif guess == 'p2':
-        gen_range = [152,252]
-    elif guess == 'p3':
-        gen_range = [252,387]
-    elif guess == 'p4':
-        gen_range = [387,494]
-    elif guess == 'p5':
-        gen_range = [494,650]
-    elif guess == 'p6':
-        gen_range = [650,722]
-    elif guess == 'p7':
-        gen_range = [722,808]
+    if guess == 'p1': gen_range = [1,152]
+    elif guess == 'p2': gen_range = [152,252]
+    elif guess == 'p3': gen_range = [252,387]
+    elif guess == 'p4': gen_range = [387,494]
+    elif guess == 'p5': gen_range = [494,650]
+    elif guess == 'p6': gen_range = [650,722]
+    elif guess == 'p7': gen_range = [722,808]
     else:
         # print all the valid gens
         for key in guessed:
             try:
-                print(key,"\t\t",guessed[key])
+                print(f"{key}\t\t{guessed[key]}")
             except KeyError:
                 pass
         return
@@ -35,7 +28,7 @@ def print_guessed(guessed,guess):
     # go through only one generation and print
     for k in range(start,stop):
         try:
-            print(k,"\t\t",guessed[k])
+            print(f"{k}\t\t{guessed[k]}")
         except KeyError:
             pass
 
@@ -45,7 +38,7 @@ def end_game():
     print("==============================================")
     print("Dex number\t Pokémon")
     for key in guessed:
-        print(key,"\t\t",guessed[key])
+        print(f"{key}\t\t{guessed[key]}")
     print("")
     print("Congratulations! You did it!!")
 
@@ -60,35 +53,13 @@ def play_game(set_of_pokemon,guessed):
 
         # logic to parse the user input
         if guess == 'p': print_guessed(guessed,guess)
-
-        elif guess == 'p1':
-            print("Gen 1 Pokédex:")
-            print_guessed(guessed,guess)
-
-        elif guess == 'p2':
-            print("Gen 2 Pokédex:")
-            print_guessed(guessed,guess)
-
-        elif guess == 'p3':
-            print("Gen 3 Pokédex:")
-            print_guessed(guessed,guess)   
-
-        elif guess == 'p4':
-            print("Gen 4 Pokédex:")
-            print_guessed(guessed,guess)
-        
-        elif guess == 'p5':
-            print("Gen 5 Pokédex:")
-            print_guessed(guessed,guess)
-
-        elif guess == 'p6':
-            print("Gen 6 Pokédex:")
-            print_guessed(guessed,guess)
-
-        elif guess == 'p7':
-            print("Gen 7 Pokédex:")
-            print_guessed(guessed,guess)
-
+        elif guess == 'p1': print("Gen 1 Pokédex:"); print_guessed(guessed,guess)
+        elif guess == 'p2': print("Gen 2 Pokédex:"); print_guessed(guessed,guess)
+        elif guess == 'p3': print("Gen 3 Pokédex:"); print_guessed(guessed,guess)   
+        elif guess == 'p4': print("Gen 4 Pokédex:"); print_guessed(guessed,guess)
+        elif guess == 'p5': print("Gen 5 Pokédex:"); print_guessed(guessed,guess)
+        elif guess == 'p6': print("Gen 6 Pokédex:"); print_guessed(guessed,guess)
+        elif guess == 'p7': print("Gen 7 Pokédex:"); print_guessed(guessed,guess)
         elif guess == 'r':
             # show the progress to the user
             remain = len(set_of_pokemon) - idx
@@ -115,7 +86,7 @@ def play_game(set_of_pokemon,guessed):
 
                 print("")
 
-        elif guess == 'q': exit("Quiting!")
+        elif guess == 'q' or guess == 'exit': exit("Quiting!")
 
         elif guess == 'h':
             print("==================== Instructions ====================")
