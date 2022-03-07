@@ -1,5 +1,7 @@
+# Pokémon class, used to store the information for each Pokémon
 class Pokemon:
     def __init__(self,name,dex_number,gen,type1,type2):
+        # error checks
         assert(type(name)==str),'Invalid name'
         assert(type(dex_number)==int),'Invalid dex number'
         assert(type(gen)==int),'Invalid generation'
@@ -10,16 +12,18 @@ class Pokemon:
         self.gen = gen
         self.type1 = type1
         self.type2 = type2
-        
-    def __str__(self):
-        return "Name: {}\tDex: {}\tType1: {}\tType2: {}".format(self.name,self.dex_number,self.type1,self.type2)
 
+    # print method for the class 
+    def __str__(self):
+        return f"Name: {self.name}\tDex: {self.dex_number}\tType1: {self.type1}\tType2: {self.type2}"
+
+# list of all Pokémon types
 valid_types = ['Normal','Fighting','Flying','Poison','Ground','Rock','Bug','Ghost','Steel',
 'Fire','Water','Grass','Electric','Psychic','Ice','Dragon','Dark','Fairy']
 
 def parse_guess(guess):
     """Parses the guess and converts to uppercase on the first letter, if needed"""
-    '''Returns the guess, parsed with a uppercase first letter '''
+    '''Returns the guess, parsed with an uppercase first letter'''
     first_letter = guess[0] # get the first letter
 
     if first_letter.islower(): # if the first letter is lowercase
