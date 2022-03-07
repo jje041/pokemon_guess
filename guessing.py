@@ -2,7 +2,9 @@ import sys
 import pokemon as pkm
 import pokedex as dex
 
+# function to help with the printing
 def print_guessed(guessed,guess):
+    # firstly, determine which generation to print
     if guess == 'p1':
         gen_range = [1,152]
     elif guess == 'p2':
@@ -18,6 +20,7 @@ def print_guessed(guessed,guess):
     elif guess == 'p7':
         gen_range = [722,808]
     else:
+        # print all the valid gens
         for key in guessed:
             try:
                 print(key,"\t\t",guessed[key])
@@ -25,23 +28,26 @@ def print_guessed(guessed,guess):
                 pass
         return
 
+    # to only print one generation, use the generation bounds as limits
     start = gen_range[0]
     stop  = gen_range[1]
 
+    # go through only one generation and print
     for k in range(start,stop):
         try:
             print(k,"\t\t",guessed[k])
         except KeyError:
             pass
 
+# the user did it, print some messages
 def end_game():
-    print("")
-    print("Congratulations! You did it!!")
     print("Here is the completed Pokédex:")
     print("==============================================")
     print("Dex number\t Pokémon")
     for key in guessed:
         print(key,"\t\t",guessed[key])
+    print("")
+    print("Congratulations! You did it!!")
 
 def play_game(set_of_pokemon,guessed):
     # counter of correct guesses
@@ -108,7 +114,7 @@ def play_game(set_of_pokemon,guessed):
                         print(chr(9647),end='')
 
                 print("")
-                
+
         elif guess == 'q': exit("Quiting!")
 
         elif guess == 'h':
