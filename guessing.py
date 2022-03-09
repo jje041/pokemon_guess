@@ -32,6 +32,117 @@ def print_guessed(guessed,guess):
         except KeyError:
             pass
 
+def save_game_choice():
+    # prompt the user to continue or not
+    print("Do you want to quit the game? [y/n]: ",end='')
+    choice = input()
+
+    if choice == 'y' or choice == 'yes' or choice == 'Y' or choice == 'YES':
+        print("Quiting!")
+        exit()
+    elif choice == 'n' or choice == 'no' or choice == 'N' or choice == 'NO':
+        print("Continuing!")
+        return
+    else:
+        print("Invalid option!")
+        save_game_choice()
+
+# function used to save the current progress
+def save_game(guessed,idx,gens):
+    # get filename
+    print("Enter save game name: ",end='')
+    save_name = input()
+
+    # open file
+    f = open(save_name,"w")
+
+    # store the number of correct guesses
+    f.write(str(idx))
+    f.write("\n")
+
+    # save current guesses in the file
+    for key in guessed:
+        f.write(f"{key}\t{guessed[key]}\n")
+
+    # store magic number
+    f.write(str(0x55AA))
+    f.write("\n")
+
+    # store the generations used in the game
+    for gen in gens:
+        f.write(str(gen))
+        f.write("\n")
+    
+    # close the file
+    f.close()
+
+    # call the save_game_choice function to handle the user choice
+    save_game_choice()
+
+# function used to load a saved game
+def load_game():
+    # prompt the user to enter save game filename
+    print("Select game to load: ",end='')
+    load_name = input()
+
+    # initialize the new generation list and guessed dictionary
+    new_gens = []
+    new_guessed = {}
+
+    # try to open the file
+    try:
+        f = open(load_name,"r")
+    except FileNotFoundError:
+        # ask the user to try again, if the request failed
+        print("Couldn't locate save game. Did you make a typo? Try Again.")
+        # call the load_game function to try again
+        load_game()
+
+    # the first line in the text file contains the idx count
+    idx = int(f.readline())
+
+    # each line in the Pokédex is on the form DexNumber\tPokémonName
+    for line in f:    
+        # split line at the tab, line_list is then of the form line_list = ['DexNumber','PokémonName\n']
+        line_list = line.split("\t")
+
+        # get the DexNumber and convert to an integer
+        dex_number = int(line_list[0])
+
+        # check if the DexNumber is the magic number, meaning the end of the Pokédex has been reached
+        if dex_number == 21930:
+            break
+
+        # remove the newline character from the Pokémon name and get the first element of the list
+        pokemon = (line_list[1].split("\n"))[0]
+
+        # add the Pokémon 
+        new_guessed[dex_number] = pokemon
+
+    # loop through the end of the file, which contains the generations used in the saved game
+    for line in f:
+        new_gens.append(int(line))
+
+    # close the file
+    f.close()
+
+    # initialize the Pokémon as an empty dictionary
+    new_set_of_pokemon = {}
+
+    # go through the Pokédex
+    for pokemon_entry in dex.Pokedex:
+        name = pokemon_entry[0]
+        dex_number = pokemon_entry[1]
+        gen = pokemon_entry[2]
+        type1 = pokemon_entry[3]
+        type2 = pokemon_entry[4]
+
+        # constructs the Pokédex from the loaded game
+        if gen in new_gens:
+            new_set_of_pokemon[dex_number] = pkm.Pokemon(name,dex_number,int(gen),type1,type2)
+
+    return [idx,new_set_of_pokemon,new_guessed]
+
 # the user did it, print some messages
 def end_game():
     print("Here is the completed Pokédex:")
@@ -42,10 +153,7 @@ def end_game():
     print("")
     print("Congratulations! You did it!!")
 
-def play_game(set_of_pokemon,guessed):
-    # counter of correct guesses
-    idx = 0
-
+def play_game(set_of_pokemon,guessed,idx,gens):
     # the game continues as long as idx is less than the total number of Pokémon in play
     while idx < len(set_of_pokemon):
         print("Enter your guess: ",end='')
@@ -113,6 +221,15 @@ def play_game(set_of_pokemon,guessed):
             print("5.")
             print("Finally! You can type q to quit.")
             print("Enjoy!")
+
+        elif guess == 'save':
+            save_game(guessed,idx,gens)
+
+        elif guess == 'load':
+            loaded_data = load_game()
+            idx = loaded_data[0]
+            set_of_pokemon = loaded_data[1]
+            guessed = loaded_data[2]
 
         elif pkm.is_valid_type(guess):
             guess = pkm.parse_guess(guess)
@@ -186,5 +303,5 @@ if __name__ == '__main__':
         guessed[key] = '?'
 
     # start the game
-    play_game(set_of_pokemon,guessed)
+    play_game(set_of_pokemon,guessed,idx=0,gens=gens)
     end_game()
