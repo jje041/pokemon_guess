@@ -174,7 +174,7 @@ def load_game():
     return [idx,new_set_of_pokemon,new_guessed]
 
 # the user did it, print some messages
-def end_game():
+def end_game(guessed):
     print("Here is the completed Pokédex:")
     print("==============================================")
     print("Dex number\t Pokémon")
@@ -287,6 +287,8 @@ def play_game(set_of_pokemon,guessed,idx,gens):
             if tmp == idx and duplicate == False:
                 print("Not in the Pokédex. Perhaps a typo? Try again.")
 
+    return guessed
+
 if __name__ == '__main__':
     # check if the 'saved' directory exists
     if os.path.exists("saved"):
@@ -346,5 +348,5 @@ if __name__ == '__main__':
         guessed[key] = '?'
 
     # start the game
-    play_game(set_of_pokemon,guessed,idx=0,gens=gens)
-    end_game()
+    guessed = play_game(set_of_pokemon,guessed,idx=0,gens=gens)
+    end_game(guessed)
