@@ -179,7 +179,7 @@ def end_game(guessed):
     print("==============================================")
     print("Dex number\t Pokémon")
     for key in guessed:
-        print(f"{key}\t\t{guessed[key]}")
+        print(f"{dex.colorMyKeyPls(key)}\t\t{guessed[key]}")
     print("")
     print("Congratulations! You did it!!")
 
