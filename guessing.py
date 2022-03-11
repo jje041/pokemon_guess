@@ -3,42 +3,6 @@ import pokemon as pkm
 import pokedex as dex
 import os
 
-'''
-    "\x1b[38;5;1mGen1\x1b[0;0m"
-    "\x1b[38;5;87mGen2\x1b[0;0m"
-    "\x1b[38;5;40mGen3\x1b[0;0m"
-    "\x1b[38;5;69mGen4\x1b[0;0m"
-    "\x1b[38;5;246mGen5\x1b[0;0m"
-    "\x1b[38;5;200mGen6\x1b[0;0m"
-    "\x1b[38;5;226mGen7\x1b[0;0m"
-'''
-#b = {'p1' : [1,152], 'p2' : [152,252], 'p3' : [252,387], 'p4' : [387,494], 'p5' : [494,650], 'p6' : [650,722], 'p7' : [722,808]}
-
-
-def colorMyKeyPls(key):
-    colors = { 'p1' : "\x1b[38;5;1m" ,
-    'p2' : "\x1b[38;5;87m" ,
-    'p3' : "\x1b[38;5;40m",
-    'p4' : "\x1b[38;5;69m",
-    'p5' : "\x1b[38;5;246m" ,
-    'p6' : "\x1b[38;5;200m" ,
-    'p7' : "\x1b[38;5;226m" 
-    }
-    if key < 152:
-        return colors["p1"] + str(key) + "\x1b[0;0m"
-    elif key < 252:
-        return colors["p2"] + str(key) + "\x1b[0;0m"
-    elif key < 387:
-        return colors["p3"] + str(key) + "\x1b[0;0m"
-    elif key < 494:
-        return colors["p4"] + str(key) + "\x1b[0;0m"
-    elif key < 650:
-        return colors["p5"] + str(key) + "\x1b[0;0m"
-    elif key < 722:
-        return colors["p6"] + str(key) + "\x1b[0;0m"
-    else:
-        return colors["p7"] + str(key) + "\x1b[0;0m" 
-
 # function to help with the printing
 def print_guessed(guessed,guess):
     # firstly, determine which generation to print
@@ -53,7 +17,7 @@ def print_guessed(guessed,guess):
         # print all the valid gens
         for key in guessed:
             try:
-                print(f"{colorMyKeyPls(key)}\t\t{guessed[key]}")
+                print(f"{dex.colorMyKeyPls(key)}\t\t{guessed[key]}")
             except KeyError:
                 pass
         return
@@ -65,7 +29,7 @@ def print_guessed(guessed,guess):
     # go through only one generation and print
     for k in range(start,stop):
         try:
-            print(f"{colorMyKeyPls(k)}\t\t{guessed[k]}")
+            print(f"{dex.colorMyKeyPls(k)}\t\t{guessed[k]}")
         except KeyError:
             pass
 
