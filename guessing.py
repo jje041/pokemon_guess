@@ -71,12 +71,13 @@ class GuessingGame:
             return None
     '''
 
-    def __init__(self,score,generations,guessed,set_of_pokemon):
+    def __init__(self,score,generations,guessed,set_of_pokemon,special_cases):
         ''' initialize the GuessingGame class '''
         self.score = score
         self.generations = generations
         self.guessed = guessed
         self.set_of_pokemon = set_of_pokemon
+        self.special_cases = special_cases
 
         self.valid_types = ['Normal','Fighting','Flying','Poison','Ground','Rock','Bug','Ghost','Steel',
                             'Fire','Water','Grass','Electric','Psychic','Ice','Dragon','Dark','Fairy']
@@ -512,11 +513,12 @@ class GuessingGame:
                 print("Quiting!")
                 exit()
 
-            # split the input to check if there are more than one word
-            guess_list = guess.split(" ")
-            if len(guess_list) == 2:
-                self.__parseGuess(guess_list)
-                continue
+            if guess not in self.special_cases:
+                # split the input to check if there are more than one word
+                guess_list = guess.split(" ")
+                if len(guess_list) == 2:
+                    self.__parseGuess(guess_list)
+                    continue
 
             # logic to parse the user input
             if guess == 'p': self.__print_guessed(guess)
@@ -572,7 +574,7 @@ class GuessingGame:
 
 if __name__ == '__main__':
     # initialize the GuessingGame class with the parameters specified in config
-    game = GuessingGame(config.score,config.generations,config.correct,config.valid)
+    game = GuessingGame(config.score,config.generations,config.correct,config.valid,config.special_cases)
 
     # initialize the game by created the necessary directory and filling in data
     game.initialize_game()
