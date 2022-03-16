@@ -1,9 +1,9 @@
-from numpy import isin
 import pokedex as dex
 import pokemon as pkm
 import config
 import os
 import sys
+import time
 
 class GuessingGame:
     '''
@@ -26,6 +26,9 @@ class GuessingGame:
 
         (Name: valid_types; Type: list (of strings))
         Description: List of strings, the strings are the types the Pokémon can have.
+
+        (Name: load; Type: boolean)
+        Description: Used to check if the user is playing a loaded game
 
     Methods:
         __init__(score,generations,guessed,set_of_pokemon)
@@ -71,13 +74,14 @@ class GuessingGame:
             return None
     '''
 
-    def __init__(self,score,generations,guessed,set_of_pokemon,special_cases):
+    def __init__(self,score,generations,guessed,set_of_pokemon,special_cases,load):
         ''' initialize the GuessingGame class '''
         self.score = score
         self.generations = generations
         self.guessed = guessed
         self.set_of_pokemon = set_of_pokemon
         self.special_cases = special_cases
+        self.load = load
 
         self.valid_types = ['Normal','Fighting','Flying','Poison','Ground','Rock','Bug','Ghost','Steel',
                             'Fire','Water','Grass','Electric','Psychic','Ice','Dragon','Dark','Fairy']
@@ -380,6 +384,7 @@ class GuessingGame:
         self.guessed = new_guessed
         self.score = idx
         self.generations = new_gens
+        self.load = True
 
     def __parseGuess(self,guess):
         ''' parses the guess and converts to uppercase on the first letter, if needed 
@@ -442,9 +447,12 @@ class GuessingGame:
     def __printTypes(self,guess,gen=None):
         ''' print all Pokémon of a given type, either type1 or type2 '''
 
+        # check if an invalid generation is entered
         if gen not in self.generations:
-            print('\a',end='')
-            print(f"Invalid generation, only generation 1-{self.generations[-1]} supported.")
+            # invalid generation, but is it a type?
+            if self.__isValidType(guess) and gen is not None:
+                print('\a',end='')
+                print(f"Invalid generation, only generation {self.generations} supported.")
 
         # go through all the Pokémon in the current game
         for key in self.set_of_pokemon:
@@ -462,7 +470,14 @@ class GuessingGame:
         # prompt the user with some useful commands to get started
         print("==== Pokémon Guessing Game ==== [press h for help or r to show progress]")
 
-    def end_game(self,end_code):
+    def convert_time(self,time_in_seconds):
+        ''' method to convert the time to seconds and minutes '''
+        seconds = int(time_in_seconds) % 60
+        minutes = int((time_in_seconds - seconds) / 60)
+
+        return (minutes,seconds)
+
+    def end_game(self,end_code,final_time=0):
         ''' method called when the game has finished executing '''
 
         if end_code == 'end':
@@ -476,6 +491,15 @@ class GuessingGame:
                 print(self.guessed[key])
             print("")
             print("Congratulations! You did it!!")
+
+            # get the time taken to complete the Pokédex
+
+            # tell the user the total time if the game was not loaded
+            if self.load == False:
+                ret_times = self.convert_time(final_time)
+                print(f"You completed the Pokédex in {ret_times[0]} minutes and {ret_times[1]} seconds.")
+                print(f"Final time [{ret_times[0]}:{ret_times[1]}]")
+
         # if the player called yield, print the Pokémon they missed and exit
         elif end_code == 'yield':
             # calculate remaining Pokémon
@@ -574,13 +598,17 @@ class GuessingGame:
 
 if __name__ == '__main__':
     # initialize the GuessingGame class with the parameters specified in config
-    game = GuessingGame(config.score,config.generations,config.correct,config.valid,config.special_cases)
+    game = GuessingGame(config.score,config.generations,config.correct,config.valid,config.special_cases,config.load)
 
     # initialize the game by created the necessary directory and filling in data
     game.initialize_game()
 
     # start the main game
+    time0 = time.perf_counter()
     game.start_game()
+    time1 = time.perf_counter()
 
+    final_time = time1 - time0
+    
     # if the user guessed everything start the end game method
-    game.end_game("end")
+    game.end_game("end",final_time)
