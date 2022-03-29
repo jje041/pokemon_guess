@@ -11,5 +11,5 @@ A simple memory game utilizing Pokémon. The goal is to guess all the Pokémon i
 | Added colors to the types                               | :heavy_check_mark: |
 | Added error sound in terminal                           | :heavy_check_mark: |
 | Added support for printing only types in one generation | :heavy_check_mark: |
-| Add generation 8                                        |                    |
+| Add generation 8                                        | :heavy_check_mark: |
 
