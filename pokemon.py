@@ -80,8 +80,9 @@ class Pokemon:
                   'p3' : "\x1b[38;5;40m",       # a different color depending on the generation
                   'p4' : "\x1b[38;5;69m",
                   'p5' : "\x1b[38;5;246m",
-                  'p6' : "\x1b[38;5;200m",
-                  'p7' : "\x1b[38;5;226m"}
+                  'p6' : "\x1b[38;5;126m",
+                  'p7' : "\x1b[38;5;208m",
+                  'p8' : "\x1b[38;5;200m",}
 
         if self.gen == 1:
             # create the complete string used to print the colors and return it
@@ -98,6 +99,8 @@ class Pokemon:
             return colors['p6'] + str(self.dex_number) + "\x1b[0;0m"
         elif self.gen == 7:
             return colors['p7'] + str(self.dex_number) + "\x1b[0;0m"
+        elif self.gen == 8:
+            return colors['p8'] + str(self.dex_number) + "\x1b[0;0m"
         else:
             pass
 

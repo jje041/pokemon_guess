@@ -103,7 +103,7 @@ class GuessingGame:
         if len(sys.argv) > 8: exit("Too many arguments, exiting.")
 
         # the generations supported in the game
-        valid_gens = ['1','2','3','4','5','6','7']
+        valid_gens = ['1','2','3','4','5','6','7','8']
 
         # determine which generations to add, if len(sys.argv) > 1 the user has entered command line arguments
         if len(sys.argv) > 1:
@@ -117,7 +117,7 @@ class GuessingGame:
                         self.generations.append(int(entry))
         else: 
             # if no gens are entered the game runs with all the generations supported, that is gen 1-7
-            self.generations = [1,2,3,4,5,6,7]
+            self.generations = [1,2,3,4,5,6,7,8]
 
         if not self.generations:
             self.end_game("generation fail")
@@ -161,7 +161,8 @@ class GuessingGame:
         elif guess == 'p4': gen_range = [387,494]
         elif guess == 'p5': gen_range = [494,650]
         elif guess == 'p6': gen_range = [650,722]
-        elif guess == 'p7': gen_range = [722,808]
+        elif guess == 'p7': gen_range = [722,809]
+        elif guess == 'p8': gen_range = [809,906]
         else:
             # print all the valid gens, using the generation to determine the color
             for key in self.set_of_pokemon:
@@ -553,6 +554,7 @@ class GuessingGame:
             elif guess == 'p5': print("Gen 5 Pokédex:"); self.__print_guessed(guess)
             elif guess == 'p6': print("Gen 6 Pokédex:"); self.__print_guessed(guess)
             elif guess == 'p7': print("Gen 7 Pokédex:"); self.__print_guessed(guess)
+            elif guess == 'p8': print("Gen 8 Pokédex:"); self.__print_guessed(guess)
             elif guess == 'r': self.__progress()
 
             elif guess == 'q' or guess == 'exit' or guess == 'quit': self.end_game("quit")
