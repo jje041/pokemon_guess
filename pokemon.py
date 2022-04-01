@@ -3,10 +3,10 @@ class Pokemon:
     
     Attributes:
         (Name: dex_number; Type: int)
-        Description: A Pokémon's associated Pokédex number
+        Description: a Pokémon's associated Pokédex number
 
         (Name: name; Type: str)
-        Description: Name of the Pokémon
+        Description: name of the Pokémon
 
         (Name: gen; Type: int)
         Description: which generation the Pokémon belongs to
@@ -15,19 +15,18 @@ class Pokemon:
         Description: first type of the Pokémon
 
         (Name: type2; Type: str)
-        Description: secoond type, may be empty    
+        Description: second type, may be empty    
 
     Methods:
-        __init__
-            return Pokémon object
+        __init__(self,name,dex_number,gen,type1,type2)
 
-        __str__
+        __str__(self)
             return str
 
-        setColorToGeneration
+        setColorToGeneration(self)
             return str 
         
-        __colorType
+        __colorType(self,pokemon_type)
             return str
     '''
 
@@ -52,8 +51,9 @@ class Pokemon:
         self.max_string_length = 7
 
     def __str__(self):
-        ''' used to print the Pokémon objects '''
+        ''' used to print the Pokémon objects, called when print method is used on an object of the Pokémon class '''
 
+        # this function is called to print the Pokémon in the terminal, here different methods are used to obtain color of the text
         # how many tabs are used is dependent upon the length of the Pokémon name and the first Pokémon type
         if len(self.name) <= self.max_string_length:
             # if the string is 7 we use three tabs, if not use two tabs to separate name and type1
@@ -75,8 +75,8 @@ class Pokemon:
         ''' method to color the Pokémon's dex number based on which generation they are in '''
 
         # dictionary of colors, one for each generation
-        colors = {'p1' : "\x1b[38;5;1m",        # the values corresponding to each key
-                  'p2' : "\x1b[38;5;87m",       # makes the text in the terminal 
+        colors = {'p1' : "\x1b[38;5;1m",        # the values corresponding to each key;
+                  'p2' : "\x1b[38;5;87m",       # makes the text in the terminal;
                   'p3' : "\x1b[38;5;40m",       # a different color depending on the generation
                   'p4' : "\x1b[38;5;69m",
                   'p5' : "\x1b[38;5;246m",
@@ -102,7 +102,7 @@ class Pokemon:
         elif self.gen == 8:
             return colors['p8'] + str(self.dex_number) + "\x1b[0;0m"
         else:
-            pass
+            print(f"Invalid generation: {self.gen}")
 
     def __colorType(self,pokemon_type):
         ''' method to color the different types 
@@ -131,6 +131,6 @@ class Pokemon:
             "Dragon" : "\x1b[38;5;57mDragon\x1b[0;0m",
             "Poison" : "\x1b[38;5;90mPoison\x1b[0;0m",
             "Steel" : "\x1b[38;5;103mSteel\x1b[0;0m",
-        "" : ""} # added empty string in case a second type is empty
+        "" : ""} # <- added an empty string in case the second type is empty
 
         return color[pokemon_type]
