@@ -579,6 +579,8 @@ class GuessingGame:
 
             elif guess == 'yield': self.end_game('yield')
 
+            elif guess == 'clear': os.system('cls' if os.name == 'nt' else 'clear')
+
             # print types to help the user
             elif self.__isValidType(guess):
                 guess = self.__parseGuess(guess)
