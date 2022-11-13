@@ -1,42 +1,54 @@
 class Pokemon:
     """
-    A class for representing Pokémon 
-
+    A class for representing Pokémon.
 
     Attributes:
     ----------
 
     name : str
-        the name of the Pokémon
+        The name of the Pokémon.
 
     dex_number : int
-        the associated Pokédex entry number
+        The associated Pokédex entry number.
 
     gen : int
-        the generation the Pokémon belongs to
+        The generation the Pokémon belongs to.
 
     type1 : str
-        the first type the Pokémon has, can be 18 different types
+        The first type the Pokémon has, can be 18 different types.
 
     type2 : str
-        the second type the Pokémon has, can be empty
+        The second type the Pokémon has, can be empty.
 
     Methods:
     --------
     setColorToGeneration(self) -> str
-        method to set the color of the generation the Pokémon belongs to
-        
+        Method to set the color of the generation the Pokémon belongs to.
     """
 
-    def __init__(self, name: str, dex_number: int, gen: int, type1: str, type2: str) -> None:
-        """Constructor for the Pokémon class; will verify the correctness of the input """
+    def __init__(self, name: str, dex_number: int, gen: int, type1: str, type2="") -> None:
+        """Initializer for the Pokémon class. The initializer will verify the input arguments.
+
+        Parameters
+        ----------
+        name : str
+            The name of the Pokémon, should start with a capital letter.
+        dex_number : int
+            The Pokédex number for the Pokémon.
+        gen : int
+            The generation the Pokémon belongs to. 
+        type1 : str
+            The primary type for the Pokémon. 
+        type2 : str
+            The secondary type for the Pokémon, empty string if no second type is provided
+        """
 
         # check that the inputs are of the correct type
-        assert(type(name) == str),'Invalid name'
-        assert(type(dex_number) == int and dex_number > 0),'Invalid dex number'
-        assert(type(gen) == int and 1 <= gen <= 8),'Invalid generation'
-        assert(type(type1) == str),'Invalid type 1'
-        assert(type(type2) == str),'Invalid type 2'
+        assert type(name) == str,'Invalid name'
+        assert type(dex_number) == int and dex_number > 0,'Invalid dex number'
+        assert type(gen) == int and 1 <= gen <= 8,'Invalid generation'
+        assert type(type1) == str,'Invalid type 1'
+        assert type(type2) == str,'Invalid type 2'
 
         # set attributes
         self.dex_number = dex_number
@@ -49,9 +61,15 @@ class Pokemon:
         self.max_string_length = 7
 
     def __str__(self) -> str:
-        """Used to print the Pokémon objects, called when print method is used on an object of the Pokémon class """
+        """Used to print the Pokémon objects, called when print method is used on an object of the Pokémon class.
 
-        # this function is called to print the Pokémon in the terminal, here different methods are used to obtain color of the text
+        Returns
+        -------
+        str
+            Formatted Pokémon information. 
+        """
+
+        # this method is called to print the Pokémon in the terminal, here different methods are used to obtain color of the text
         # how many tabs are used is dependent upon the length of the Pokémon name and the first Pokémon type
         if len(self.name) <= self.max_string_length:
             # if the string is 7 we use three tabs, if not use two tabs to separate name and type1
@@ -70,21 +88,17 @@ class Pokemon:
                 return f"{self.setColorOfGeneration()}\t\t{self.name}\t\t{self.__colorType(self.type1)}\t{self.__colorType(self.type2)}"
 
     def setColorOfGeneration(self) -> str:
-        """Method to color the Pokémon's dex number based on which generation they are in
-        
-        Parameters:
-        ----------
-        
-        Returns:
-        --------
-        str
-            string that is the colored version of the generation number
+        """Method to color the Pokémon's dex number based on which generation they are in.
 
+        Returns
+        -------
+        str
+            Colored version of the generation number as a string.
         """
 
         # dictionary of colors, one for each generation
-        colors = {'p1' : "\x1b[38;5;1m",        # the values corresponding to each key;
-                  'p2' : "\x1b[38;5;87m",       # makes the text in the terminal;
+        colors = {'p1' : "\x1b[38;5;1m",        # the values corresponding to each key
+                  'p2' : "\x1b[38;5;87m",       # makes the text in the terminal
                   'p3' : "\x1b[38;5;40m",       # a different color depending on the generation
                   'p4' : "\x1b[38;5;69m",
                   'p5' : "\x1b[38;5;246m",
@@ -114,18 +128,18 @@ class Pokemon:
             case _:
                 return f"Invalid generation: {self.gen}"
 
-    def __colorType(self, pokemon_type: str) -> dict[str,str]:
-        """Method to color the different types 
-        
-        Parameters:
-        -----------
+    def __colorType(self, pokemon_type: str) -> str:
+        """Private method to color the Pokémon types.
 
-        pokemon_type: str
-            the type to color
+        Parameters
+        ----------
+        pokemon_type : str
+            The Pokémon type, there are 18 possibilities. 
 
-        Returns:
-        --------
-            A dictionary with the associated as the key and the colored string with the type as the value
+        Returns
+        -------
+        str
+            A string with the type, but now in color. 
         """
 
         # there are a total of 18 types in Pokémon
@@ -155,7 +169,7 @@ class Pokemon:
             color[pokemon_type]
         except KeyError:
             return f"Invalid type encountered! {pokemon_type} is not a valid type."
-    
+
         # return the correct type
         return color[pokemon_type]
 
@@ -164,9 +178,6 @@ def perform_test():
     pokemon2 = Pokemon("Chandelure",609,5,"Ghost","Fire")
     pokemon3 = Pokemon("Hoppip",187,2,"Grass","Electric")
     # pokemon4 = Pokemon("",0,-1,"","Not a type")           # will be stopped by the assert
-
-    pokemon1.setColorOfGeneration()
-
 
 if __name__ == "__main__":
     perform_test()

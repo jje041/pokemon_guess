@@ -6,88 +6,59 @@ import sys
 import time
 
 class GuessingGame:
-    '''
-    A class that contains the game's attributes and methods 
+    """A class for representing the main guessing game.
 
-    Attributes:
-        (Name: score; Type: int)
-        Description: number of correct guesses the user has
+    Attributes
+    ----------
+    score : int
+        The score, total number of correct guesses from the player. 
 
-        (Name: generations; Type: list (of int))
-        Description: list of generations the user is playing with
+    generations : list[int]
+        A list of the generations (as integers) the player want to use. 
 
-        (Name: guessed; Type: dictionary (int key : class Pokemon))
-        Description: the correct guesses the user has, the key corresponds to the Pokédex number 
-                     and the value is a an object of the Pokémon class, contain information about the Pokémon
+    guessed : dict[int, Pokemon]
+        A dictionary of the correct guesses the player has. 
 
-        (Name: set_of_pokemon; Type: dictionary (int key : class Pokemon))        
-        Description: all the Pokémon corresponding to the generations in the generations attribute 
-                     stored as Pokédex number : Pokémon class
+    set_of_pokemon : dict[int, Pokemon]
+        A dictionary with all the Pokémon in the game. 
 
-        (Name: valid_types; Type: list (of strings))
-        Description: list of strings, the strings are the types the Pokémon can have
+    special_cases : list[str]
+        Pokémon that have spaces in their names have to be treated a bit differently. 
 
-        (Name: load; Type: boolean)
-        Description: used to check if the user is playing a loaded game, used by the timing handler
+    load : bool
+        True of False if the game currently being played in a loaded game or not. 
 
-    Methods:
-        __init__(score,generations,guessed,set_of_pokemon)
-            return None
+    valid_types : list[str]
+        A list with all the valid Pokémon types stored as strings. 
+    """
 
-        __create_save_directory()
-            return None
+    def __init__(self, score: int, special_cases: list[str], load: bool) -> None:
+        """The initializer for the GuessingGame class.
 
-        __determine_generations()
-            return None
+        Parameters
+        ----------
+        score : int
+            The score, total number of correct guesses from the player. 
+        special_cases : list[str]
+            Pokémon that have spaces in their names have to be treated a bit differently. 
+        load : bool
+            True of False if the game currently being played in a loaded game or not. 
+        """
 
-        __setup_dex()
-            return None
-
-        __print_guessed(guess)
-            return None
-
-        __progress()
-            return None
-
-        __instructions()
-            return None
-
-        __save_game_choice()
-            return None
-        
-        save_game()
-            return None
-
-        load_game()
-            return None
-
-        __parseGuess(guess)
-            return guess
-
-        __isValidType(guess)
-            return Bool
-
-        __printTypes(guess)
-            return None
-        
-        initialize_game()
-            return None
-    '''
-
-    def __init__(self,score,generations,guessed,set_of_pokemon,special_cases,load):
-        ''' initialize the GuessingGame class '''
+        # set the needed attributes for the class
         self.score = score
-        self.generations = generations
-        self.guessed = guessed
-        self.set_of_pokemon = set_of_pokemon
+        self.generations = []
+        self.guessed = {}
+        self.set_of_pokemon = {}
         self.special_cases = special_cases
         self.load = load
 
+        # store a list with the valid Pokémon types.
         self.valid_types = ['Normal','Fighting','Flying','Poison','Ground','Rock','Bug','Ghost','Steel',
                             'Fire','Water','Grass','Electric','Psychic','Ice','Dragon','Dark','Fairy']
 
-    def __create_save_directory(self):
-        ''' used to create the saved directory needed to save and load '''
+    def __create_save_directory(self) -> None:
+        """Used to create the saved directory needed to save and load. """
 
         # check if the 'saved' directory exists
         if os.path.exists("saved"):
@@ -97,10 +68,14 @@ class GuessingGame:
             # if not, create it
             os.mkdir("saved")
 
-    def __determine_generations(self):
-        ''' function to determine the generations the user wants '''
+    def __determine_generations(self) -> None:
+        """Private method to determine the generations the user would like to have in the game. It is
+        okay if the arguments are entered out of order. The method will sort the generations properly.
+        """
+
         # the user can input the generation wanted in the game, the supported generations are 1-8 (so far)
-        if len(sys.argv) > 8: exit("Too many arguments, exiting.")
+        if len(sys.argv) > 9: 
+            exit("Too many arguments, exiting.")
 
         # the generations supported in the game
         valid_gens = ['1','2','3','4','5','6','7','8']
@@ -115,6 +90,20 @@ class GuessingGame:
                         # if the entry in the argument vector contains a valid generation,
                         # it is added to the gens list 
                         self.generations.append(int(entry))
+                    else:
+                        # if the entry doesn't match, check it for correctness
+                        try:
+                            # try to cast the argument to an integer
+                            check_value = int(entry)
+
+                            # if the input is a number, check if it is a valid generation
+                            if check_value > 8 or check_value < 1:
+                                print("Generation not supported!")
+                                self.end_game("generation fail")
+
+                        # casting fail, the entry is not a number, stop the program
+                        except ValueError:
+                            self.end_game("generation fail")
         else:
             # if no gens are entered the game runs with all the generations supported, that is gen 1-8
             self.generations = [1,2,3,4,5,6,7,8]
@@ -126,17 +115,14 @@ class GuessingGame:
         # sort the generations
         self.generations.sort()
 
-    def __setup_dex(self):
-        ''' initialize the complete Pokédex using the generations the user wants, also setup the guessed dictionary '''
+    def __setup_dex(self) -> None:
+        """Initialize the complete Pokédex using the generations the user wants, also setup the guessed dictionary.
+        """
 
         # go through the Pokédex list
         for pokemon_entry in dex.Pokedex:
             # save name, dex number, generation and both types
-            name = pokemon_entry[0]
-            dex_number = pokemon_entry[1]
-            gen = pokemon_entry[2]
-            type1 = pokemon_entry[3]
-            type2 = pokemon_entry[4]
+            name, dex_number, gen, type1, type2 = pokemon_entry
 
             # if a Pokémon is in a generation that the user wants, add it to the dictionary of all the Pokémon
             if gen in self.generations:
@@ -144,35 +130,42 @@ class GuessingGame:
                 self.set_of_pokemon[dex_number] = pkm.Pokemon(name,dex_number,gen,type1,type2)
                 self.guessed[dex_number]        = pkm.Pokemon('?',dex_number,gen,type1,type2)
 
-    def __print_guessed(self,guess):
-        """
-        ''' function to help with printing Pokémon already guessed '''
+    def __print_guessed(self, guess: str) -> None:
+        """Function to help with printing Pokémon already guessed.
+        Print the generation specified in the guess argument.
 
-            arguments:
-                guess: generation the user wants to print
-        
-            return:
-                None
+        Parameters
+        ----------
+        guess : str
+            Generation the user wants to print.
         """
-        
+
         # firstly, determine which generation to print
-        if guess == 'p1': gen_range = [1,152]
-        elif guess == 'p2': gen_range = [152,252]
-        elif guess == 'p3': gen_range = [252,387]
-        elif guess == 'p4': gen_range = [387,494]
-        elif guess == 'p5': gen_range = [494,650]
-        elif guess == 'p6': gen_range = [650,722]
-        elif guess == 'p7': gen_range = [722,810]
-        elif guess == 'p8': gen_range = [810,906]
-        else:
-            # print all the valid gens, using the generation to determine the color
-            for key in self.set_of_pokemon:
-                print(f"{self.guessed[key].setColorOfGeneration()}\t\t{self.guessed[key].name}")
-            return
+        match guess:
+            case "p1":
+                gen_range = [1,152]
+            case "p2":
+                gen_range = [152,252]
+            case "p3":
+                gen_range = [252,387]
+            case "p4":
+                gen_range = [387,494]
+            case "p5":
+                gen_range = [494,650]
+            case "p6":
+                gen_range = [650,722]
+            case "p7":
+                gen_range = [722,810]
+            case "p8":
+                gen_range = [810,906]
+            case _:
+                # print all the valid gens, using the generation to determine the color
+                for key in self.set_of_pokemon:
+                    print(f"{self.guessed[key].setColorOfGeneration()}\t\t{self.guessed[key].name}")
+                return
 
         # to only print one generation, use the generation bounds as limits
-        start = gen_range[0]
-        stop  = gen_range[1]
+        start, stop = gen_range
 
         # go through only one generation and print using the generation to determine the color
         for key in range(start,stop):
@@ -181,11 +174,14 @@ class GuessingGame:
             except KeyError:
                 pass
 
-    def __progress(self):
-        ''' method to display a progress bar in the terminal '''
+    def __progress(self) -> None:
+        """Method to display a progress bar in the terminal.
+        """
 
         # determine how many Pokémon remain
         remain = len(self.set_of_pokemon) - self.score
+
+        # check if the user has only one correct guess
         if remain == len(self.set_of_pokemon) - 1:
             # if the user have only one correct guess, use singular instead of plural
             print(f"You have {self.score} correct guess, meaning there is {remain} left to guess.")
@@ -206,45 +202,50 @@ class GuessingGame:
 
             print("")
 
-    def __instructions(self):
-            ''' function to print instructions to the user '''
-            print("==================== Instructions ====================")
-            print("The goal here is to guess every Pokémon in the Pokédex. ")
-            print("Type the Pokémon name in the terminal and hit enter to make your guess. ")
-            print("The following commands are implemented to help in your journey:")
-            print("1.")
-            print("You can type 'p' to print the Pokédex. This will display the Pokémon you have guessed")
-            print("and the ones you are missing, these being displayed by a '?' symbol.")
-            print("Note that you must use a capital letter at the beginning of each name.")
-            print("Alternatively, you can use 'p1', 'p2', 'p3' and so on... to print only the generation behind p")
-            print("2.")
-            print("You can also write a Pokémon type. Either capitalized or not, i.e. you can type 'Fire' or 'fire'. ")
-            print("This will print out all the guessed and not guessed Pokémon of that type. ")
-            print("In particular, not guessed Pokémon are marked with a '?' and correctly guessed Pokémon are shown with their name")
-            print("and corresponding PokéDex number.")
-            print("To help you out, the types are displayed if you use these commands.")
-            print("3.")
-            print("In the terminal you can enter the numbers between 1-8, or any combinations you desire, ")
-            print("you also type the commands in any order, like 3 2 1 is fine.")
-            print("Note that you have to separate the numbers with spaces, only!")
-            print("The game will then run with only the specified generations. All other commands work as before.")
-            print("However, typing p4 when generation 4 is excluded does not do anything.")
-            print("4.")
-            print("Typing 'r' will show the number of remaining Pokémon left and how many correct guesses you have.")
-            print("A progress bar showing the percentage is also displayed.")
-            print("5.")
-            print("You save the game by typing 'save' and load a previous game with 'load'.")
-            print("These commands will give further instructions for how to load or save.")
-            print("6.")
-            print("New feature! You can also type p1, p2, ..., p8 and a type to print only the types in that generation.")
-            print("7.")
-            print("You can type yield to exit the game, this will show you the Pokémon you missed.")
-            print("8.")
-            print("Finally! You can type q or exit to quit. This does not show you the Pokémon you missed.")
-            print("Enjoy!")
+    def __instructions(self) -> None:
+        """Method to print instructions to the user. Function is called
+        when 'h' or 'help' is typed in the terminal.
+        """
 
-    def __save_game_choice(self):
-        ''' function to handle menuing after saving '''
+        print("==================== Instructions ====================")
+        print("The goal here is to guess every Pokémon in the Pokédex. ")
+        print("Type the Pokémon name in the terminal and hit enter to make your guess. ")
+        print("The following commands are implemented to help in your journey:\n")
+        print("1.")
+        print("You can type 'p' to print the Pokédex. This will display the Pokémon you have guessed")
+        print("and the ones you are missing, these being displayed by a '?' symbol.")
+        print("Note that you must use a capital letter at the beginning of each name.")
+        print("Alternatively, you can use 'p1', 'p2', 'p3' and so on... to print only the generation behind p\n")
+        print("2.")
+        print("You can also write a Pokémon type. Either capitalized or not, i.e. you can type 'Fire' or 'fire'. ")
+        print("This will print out all the guessed and not guessed Pokémon of that type. ")
+        print("In particular, not guessed Pokémon are marked with a '?' and correctly guessed Pokémon are shown with their name")
+        print("and corresponding PokéDex number.")
+        print("To help you out, the types are displayed if you use these commands.\n")
+        print("3.")
+        print("In the terminal you can enter the numbers between 1-8, or any combinations you desire, ")
+        print("you also type the commands in any order, like 3 2 1 is fine.")
+        print("Note that you have to separate the numbers with spaces, only!")
+        print("The game will then run with only the specified generations. All other commands work as before.")
+        print("However, typing p4 when generation 4 is excluded does not do anything.\n")
+        print("4.")
+        print("Typing 'r' will show the number of remaining Pokémon left and how many correct guesses you have.")
+        print("A progress bar showing the percentage is also displayed.\n")
+        print("5.")
+        print("You save the game by typing 'save' and load a previous game with 'load'.")
+        print("These commands will give further instructions for how to load or save.\n")
+        print("6.")
+        print("New feature! You can also type p1, p2, ..., p8 and a type to print only the types in that generation.\n")
+        print("7.")
+        print("You can type yield to exit the game, this will show you the Pokémon you missed.\n")
+        print("8.")
+        print("Finally! You can type q or exit to quit. This does not show you the Pokémon you missed.")
+        print("Enjoy!\n")
+
+    def __save_game_choice(self) -> None:
+        """Function to handle menuing after saving.
+        """
+
         # prompt the user to continue or not
         print("Do you want to quit the game? [y/n]: ",end='')
         choice = input()
@@ -260,8 +261,10 @@ class GuessingGame:
             print("Invalid option!")
             self.__save_game_choice()
 
-    def save_game(self):
-        ''' this method saves the current progress of the game, in particular, it stores the main attributes of the GuessingGame class '''
+    def save_game(self) -> None:
+        """This method saves the current progress of the game, in particular, 
+        it stores the main attributes of the GuessingGame class.
+        """
 
         # get filename to save game as
         print("Enter save game name: ",end='')
@@ -300,8 +303,10 @@ class GuessingGame:
         # call the save_game_choice function to handle the user choice
         self.__save_game_choice()
 
-    def load_game(self):
-        ''' method to load a saved game '''
+    def load_game(self) -> None:
+        """Method to load a saved game. Using this method will nullify
+        the timer for the game.
+        """
 
         # get saved directory
         save_dir = os.listdir("saved")
@@ -392,25 +397,30 @@ class GuessingGame:
         self.generations = new_gens
         self.load = True
 
-    def __parseGuess(self,guess):
-        ''' parses the guess and converts to uppercase on the first letter, if needed 
-        
-            arguments:
-                guess - type to be parsed
+    def __parseGuess(self, guess: str | list) -> str | None:
+        """Parses the guess and converts to uppercase on the first letter, if needed
 
-            return
-                guess - parsed type, now having the first letter capitalized
-        '''
+        Parameters
+        ----------
+        guess : str, list
+            The users guess. The method will parse this argument and act accordingly. The parsing includes
+            finding out which type (or types) are entered. Method might call itself, if necessary.
+
+        Returns
+        -------
+        str | None
+            Returns the parsed type, now having the first letter capitalized or None if there is no type provided or
+            an error occures.
+        """
 
         # check if the argument is a list
         if isinstance(guess,list):
             # check if the first argument is of length 2 (basically check if the first argument is p3, as an example)
             if len(guess[0]) <= 2:
-                typ = guess[1]
-                gen = guess[0]
+                # extract the generation and type, according to which one is first
+                gen, typ = guess
             else:
-                typ = guess[0]
-                gen = guess[1]
+                typ, gen = guess
 
             # having found the type and gen, parse the type
             typ = self.__parseGuess(typ)
@@ -436,8 +446,13 @@ class GuessingGame:
                 print("Invalid type! Try Again.")
 
         else:
-            # get the first letter
-            first_letter = guess[0]
+            first_letter = ""
+
+            try:
+                # get the first letter
+                first_letter = guess[0]
+            except IndexError:
+                pass
 
             if first_letter.islower(): # if the first letter is lowercase
                 # change it to uppercase
@@ -445,21 +460,40 @@ class GuessingGame:
 
             return guess
 
-    def __isValidType(self,guess):
-        ''' method to check if the guess is a valid Pokémon type,
-            returns True/False '''
+    def __isValidType(self, guess: str) -> bool:
+        """Method to check if the guess is a valid Pokémon type
 
+        Parameters
+        ----------
+        guess : str
+            The type to check the validity of. 
+
+        Returns
+        -------
+        bool
+            True if the input is a valid type in Pokémon, False otherwise. 
+        """
+
+        # parse the guess, will return a Pokémon type or None
         guess = self.__parseGuess(guess)
 
-        # goes through the list of valid types to check if it is there
+        # go through the list of valid types to check if it is there
         for tmp in self.valid_types:
             if tmp == guess:
                 return True
 
         return False
 
-    def __printTypes(self,guess,gen=None):
-        ''' print all Pokémon of a given type, either type1 or type2 '''
+    def __printTypes(self, guess: str, gen=None) -> None:
+        """Print all Pokémon of a given type, either type1 or type2
+
+        Parameters
+        ----------
+        guess : str
+            The type to print.
+        gen : _type_, optional
+            The generation to print from, by default None
+        """
 
         # check if an invalid generation is entered
         if gen not in self.generations:
@@ -475,8 +509,11 @@ class GuessingGame:
                 # print the guessed Pokémon of these types, showing unknown as '?'
                 print(self.guessed[key])
 
-    def initialize_game(self):
-        ''' this method sets up the attributes of the game and creates the necessary data '''
+    def initialize_game(self) -> None:
+        """This method sets up the attributes of the game and creates the necessary data.
+        """
+
+        # setup the save directory, the generations and the Pokédex
         self.__create_save_directory()
         self.__determine_generations()
         self.__setup_dex()
@@ -484,15 +521,36 @@ class GuessingGame:
         # prompt the user with some useful commands to get started
         print("==== Pokémon Guessing Game ==== [press h for help or r to show progress]")
 
-    def convert_time(self,time_in_seconds):
-        ''' method to convert the time to seconds and minutes '''
+    def convert_time(self, time_in_seconds: float) -> tuple[int,int]:
+        """Method to convert the time to seconds and minutes.
+
+        Parameters
+        ----------
+        time_in_seconds : float
+            The time the user took to complete the game. 
+
+        Returns
+        -------
+        tuple[int,int]
+            Tuple consisting of the time in minutes and seconds, respectively as integers.
+        """
+
+        # compute the number of seconds and minutes spent completing a game
         seconds = int(time_in_seconds) % 60
         minutes = int((time_in_seconds - seconds) / 60)
 
-        return (minutes,seconds)
+        return minutes, seconds
 
-    def end_game(self,end_code,final_time=0):
-        ''' method called when the game has finished executing '''
+    def end_game(self, end_code: str, final_time=0) -> None:
+        """Method called when the game has finished executing.
+
+        Parameters
+        ----------
+        end_code : str
+            Code to determine the reason for the game ending.
+        final_time : int, optional
+            The time to complete the Pokédex by the player, by default 0
+        """
 
         if end_code == 'end':
             # display information to the user
@@ -510,6 +568,7 @@ class GuessingGame:
 
             # tell the user the total time if the game was not loaded
             if self.load == False:
+                # format the time in minutes and seconds
                 ret_times = self.convert_time(final_time)
                 print(f"You completed the Pokédex in {ret_times[0]} minutes and {ret_times[1]} seconds.")
                 print(f"Final time [{ret_times[0]}:{ret_times[1]}]")
@@ -538,8 +597,9 @@ class GuessingGame:
         else:
             print("Quiting!")
 
-    def start_game(self):
-        ''' main game, handles input from the user and acts on it '''
+    def start_game(self) -> None:
+        """Main game, handles input from the user and acts on it.
+        """
 
         # keep going until the score is the same as the number of Pokémon
         while self.score < len(self.set_of_pokemon):
@@ -615,7 +675,7 @@ class GuessingGame:
 
 if __name__ == '__main__':
     # initialize the GuessingGame class with the parameters specified in config
-    game = GuessingGame(config.score,config.generations,config.correct,config.valid,config.special_cases,config.load)
+    game = GuessingGame(config.score, config.special_cases, config.load)
 
     # initialize the game by created the necessary directory and filling in data
     game.initialize_game()
@@ -625,6 +685,7 @@ if __name__ == '__main__':
     game.start_game()
     time1 = time.perf_counter()
 
+    # compute the final time
     final_time = time1 - time0
     
     # if the user guessed everything start the end game method
