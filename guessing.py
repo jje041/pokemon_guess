@@ -1,5 +1,5 @@
 import pokedex as dex
-import pokemon as pkm
+from pokemon import Pokemon
 import config
 import os
 import sys
@@ -48,7 +48,7 @@ class GuessingGame:
         # set the needed attributes for the class
         self.score = score
         self.generations = []
-        self.guessed = {}
+        self.guessed:dict[int,Pokemon] = {}
         self.set_of_pokemon = {}
         self.special_cases = special_cases
         self.load = load
@@ -74,11 +74,11 @@ class GuessingGame:
         """
 
         # the user can input the generation wanted in the game, the supported generations are 1-8 (so far)
-        if len(sys.argv) > 9: 
+        if len(sys.argv) > 10: 
             exit("Too many arguments, exiting.")
 
         # the generations supported in the game
-        valid_gens = ['1','2','3','4','5','6','7','8']
+        valid_gens = ['1','2','3','4','5','6','7','8','9']
 
         # determine which generations to add, if len(sys.argv) > 1 the user has entered command line arguments
         if len(sys.argv) > 1:
@@ -97,7 +97,7 @@ class GuessingGame:
                             check_value = int(entry)
 
                             # if the input is a number, check if it is a valid generation
-                            if check_value > 8 or check_value < 1:
+                            if check_value > 9 or check_value < 1:
                                 print("Generation not supported!")
                                 self.end_game("generation fail")
 
@@ -106,7 +106,7 @@ class GuessingGame:
                             self.end_game("generation fail")
         else:
             # if no gens are entered the game runs with all the generations supported, that is gen 1-8
-            self.generations = [1,2,3,4,5,6,7,8]
+            self.generations = [1,2,3,4,5,6,7,8,9]
 
         # if the user has entered something strange, quit properly
         if not self.generations:
@@ -127,8 +127,8 @@ class GuessingGame:
             # if a Pokémon is in a generation that the user wants, add it to the dictionary of all the Pokémon
             if gen in self.generations:
                 # also add guessed, but set name to '?'
-                self.set_of_pokemon[dex_number] = pkm.Pokemon(name,dex_number,gen,type1,type2)
-                self.guessed[dex_number]        = pkm.Pokemon('?',dex_number,gen,type1,type2)
+                self.set_of_pokemon[dex_number] = Pokemon(name,dex_number,gen,type1,type2)
+                self.guessed[dex_number]        = Pokemon('?',dex_number,gen,type1,type2)
 
     def __print_guessed(self, guess: str) -> None:
         """Function to help with printing Pokémon already guessed.
@@ -158,10 +158,12 @@ class GuessingGame:
                 gen_range = [722,810]
             case "p8":
                 gen_range = [810,906]
+            case "p9":
+                gen_range = [906,1009]
             case _:
                 # print all the valid gens, using the generation to determine the color
                 for key in self.set_of_pokemon:
-                    print(f"{self.guessed[key].setColorOfGeneration()}\t\t{self.guessed[key].name}")
+                    print(f"{self.guessed[key].genColoredID()}\t\t{self.guessed[key].name}")
                 return
 
         # to only print one generation, use the generation bounds as limits
@@ -170,7 +172,7 @@ class GuessingGame:
         # go through only one generation and print using the generation to determine the color
         for key in range(start,stop):
             try:
-                print(f"{self.guessed[key].setColorOfGeneration()}\t\t{self.guessed[key].name}")
+                print(f"{self.guessed[key].genColoredID()}\t\t{self.guessed[key].name}")
             except KeyError:
                 pass
 
@@ -387,8 +389,8 @@ class GuessingGame:
 
             # constructs the Pokédex from the loaded game
             if gen in new_gens:
-                new_set_of_pokemon[dex_number] = pkm.Pokemon(name,dex_number,gen,type1,type2)
-                new_guessed[dex_number]        = pkm.Pokemon(new_guessed_tmp[dex_number],dex_number,gen,type1,type2)
+                new_set_of_pokemon[dex_number] = Pokemon(name,dex_number,gen,type1,type2)
+                new_guessed[dex_number]        = Pokemon(new_guessed_tmp[dex_number],dex_number,gen,type1,type2)
 
         # update attributes
         self.set_of_pokemon = new_set_of_pokemon
@@ -628,6 +630,7 @@ class GuessingGame:
             elif guess == 'p6': print("Gen 6 Pokédex:"); self.__print_guessed(guess)
             elif guess == 'p7': print("Gen 7 Pokédex:"); self.__print_guessed(guess)
             elif guess == 'p8': print("Gen 8 Pokédex:"); self.__print_guessed(guess)
+            elif guess == 'p9': print("Gen 9 Pokédex:"); self.__print_guessed(guess)
             elif guess == 'r': self.__progress()
 
             elif guess == 'q' or guess == 'exit' or guess == 'quit': self.end_game("quit")
