@@ -1005,7 +1005,9 @@ Pokedex = [["Bulbasaur",1,1,'Grass','Poison'],
 ["Roaring Moon",1005,9,'Dragon','Dark'],
 ["Iron Valiant",1006,9,'Fairy','Fighting'],
 ["Koraidon",1007,9,'Fighting','Dragon'],
-["Miraidon",1008,9,'Electric','Dragon']
+["Miraidon",1008,9,'Electric','Dragon'],
+["Walking Wake",1009,9,'Water','Dragon'],
+["Iron Leaves",1010,9,'Grass','Psychic']
 ]
 
 # ^a list of lists
