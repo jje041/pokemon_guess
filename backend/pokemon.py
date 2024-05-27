@@ -3,7 +3,7 @@ Pokémon class."""
 
 from __future__ import annotations
 
-from colorama import Fore, init
+from colorama import init
 
 __version__ = "2.0.1"
 __author__ = "Jørn Olav Jensen"
