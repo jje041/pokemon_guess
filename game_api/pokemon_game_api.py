@@ -1,5 +1,5 @@
-from backend.pokemon import Pokemon
-from backend.pokemon_database_api import PokemonDatabase
+from game_api.backend.pokemon import Pokemon
+from game_api.backend.pokemon_database_api import PokemonDatabase
 
 MAX_GENERATIONS = 9
 
@@ -8,8 +8,48 @@ valid_types = ["normal", "water", "fire", "grass", "fighting", "psychic", "ice",
 
 
 class GameApi:
-    # TODO: Write documentation here.
-    # TODO: Add exception handling.
+    """
+    GameApi class
+
+    Interface for the main game. Provides the major
+    functionality of the game, and interacts directly with 
+    the database API.
+
+    Attributes
+    ----------
+    pokemon_db : PokemonDatabase
+        The database API, gives the GameApi access to
+        the underlying database methods.
+
+    Methods
+    -------
+    find_generations(self, argv: list[str]) -> list[int]
+        Method to parse the command line arguments
+        into a list of generations to use in the game.
+    find_number_of_pokemon(self, gens: list[int]) -> int
+        Method to compute the total number of Pokémon in
+        the game session.
+    get_pokemon_in_game(self, table: str, gens: list[int]) -> list[Pokemon]
+        Method to fetch all the Pokémon to use in the current game session.
+    progress(self, score: int, num_pokemon: int) -> None
+        Method to print a progress bar.
+    show_pokemon_info(self, guess: str) -> None
+        Method to info for a Pokémon. Includes stats, typing,
+        egg groups, gender, height, weight and abilities.
+    show_pokemon_stats(self, guess: str) -> None
+        Method to display the stats of the provided Pokémon.
+    show_pokemon_by_stat(self, table: str, guess: str) -> None
+        Method to display Pokémon based on attack, defense, special attack, 
+        special defense, speed or the stat total. Will sort the result based
+        on the national dex number.
+    show_pokemon_by_generation_and_type(self, table: str, guess: str) -> None
+        Method to print out Pokémon based on generations and types.
+    check_pokemon_by_name(self, name: str, gens: list[int]) -> tuple[bool, bool]
+        Method to check if a Pokémon name corresponds to a Pokémon and
+        if it is already guessed or not.
+    setup_game_session(self, gens: list[int]) -> None
+        Method to setup guessing table.
+    """
 
     def __init__(self) -> None:
         self.pokemon_db = PokemonDatabase()
@@ -40,7 +80,6 @@ class GameApi:
         # Remove the first element of the list (always the original file name).
         argv.pop(0)
 
-        # If nothing was entered, use all generations.
         if not argv:
             return list(range(1, MAX_GENERATIONS + 1))
 
@@ -55,8 +94,8 @@ class GameApi:
 
     def find_number_of_pokemon(self, gens: list[int]) -> int:
         """Method to find the total number of Pokémon to be used 
-        given the required generations. Generations not checked,
-        has to be verified by caller. 
+        given the required generations. Generations are not checked,
+        and has to be verified by caller. 
 
         Parameters
         ----------
@@ -101,6 +140,11 @@ class GameApi:
         list[Pokemon]
             List of all Pokémon from
             the requested generations.
+
+        Raises
+        ------
+        PokemonInvalidGenerations
+            If the provided generations are invalid.
         """
 
         return self.pokemon_db.get_pokemon_by_gens(table, gens, types=None)
@@ -142,7 +186,7 @@ class GameApi:
 
         name = guess.lower().replace("info", "").strip()
 
-        # FIXME: Fix this god-forsaken code.
+        # Special cases.
         if name == "mr mime":
             name = "mr. mime"
         elif name == "mr rime":
@@ -157,9 +201,8 @@ class GameApi:
             print(f"No Pokémon named {name}")
 
     def show_pokemon_stats(self, guess: str) -> None:
-        """
-        Method to display the stats of
-        a requested Pokémon
+        """Method to display the stats of
+        a requested Pokémon.
 
         Parameters
         ----------
@@ -170,7 +213,7 @@ class GameApi:
 
         name = guess.lower().replace("stats", "").strip()
 
-        # FIXME: Fix this god-forsaken code.
+        # Special cases.
         if name == "mr mime":
             name = "mr. mime"
         elif name == "mr rime":
@@ -195,7 +238,7 @@ class GameApi:
             Which table to fetch the stats from.
 
         guess : str
-            The input requested, which must have the form
+            The input request, which must have the form
             stat <stat> <min> <max>, where <stat> is either
             hp, atk, def, sp_atk, sp_def or spd, total is also allowed.
             Both min and max are inclusive.
@@ -258,6 +301,10 @@ class GameApi:
             print(f"Error: {e}")
             return
 
+        if not all_pokemon:
+            print(f"No Pokémon has the ability: '{ability_name}'")
+            return
+
         for pokemon in all_pokemon:
             print(pokemon)
 
@@ -279,6 +326,7 @@ class GameApi:
         gens = []
         all_gens = {"p1": 1, "p2": 2, "p3": 3, "p4": 4, "p5": 5, "p6": 6, "p7": 7, "p8": 8, "p9": 9}
 
+        # Extract the generational info from the guess argument.
         for gen_command, gen_value in all_gens.items():
             if gen_command in guess:
                 guess = guess.replace(gen_command, "")
@@ -287,7 +335,9 @@ class GameApi:
         gens.sort()
         guess = guess.strip()
 
+        # Determine if the user wants to see any types.
         show_types = any(pokemon_type in guess for pokemon_type in valid_types)
+
         all_pokemon = self.pokemon_db.get_pokemon_by_type(table, guess, gens)
 
         for pokemon in all_pokemon:
@@ -296,17 +346,36 @@ class GameApi:
             else:
                 print(pokemon.print_no_types())
 
-    def get_pokemon_by_name(self, name: str, gens: list[int]) -> tuple[bool, bool]:
+    def check_pokemon_by_name(self, name: str, gens: list[int]) -> tuple[bool, bool]:
+        """Method to check if the provided name is a valid Pokémon.
+
+        Parameters
+        ----------
+        name : str
+            The Pokémon name to check for.
+        gens : list[int]
+            The generations that the Pokémon should be from.
+
+        Returns
+        -------
+        tuple[bool, bool]
+            First value is True if the name provided
+            corresponds to a valid Pokémon, the second
+            value is True if the Pokémon is in the guessing table.
+        """
 
         try:
+            # Try to pop, if it fails, there is no Pokémon with the provided name.
             fetched_pokemon = self.pokemon_db.get_pokemon_by_name("pokemon", name).pop(0)
         except IndexError:
             return False, False
-        
+
+        # Check if the Pokémon is in the generations that are used.
         if fetched_pokemon.gen not in gens:
             return False, False
 
         try:
+            # Check if the Pokémon is already in the guessing table.
             self.pokemon_db.get_pokemon_by_name("guessing", name).pop(0)
         except IndexError:
             self.pokemon_db.update_pokemon_name("guessing", fetched_pokemon.dex_num, name)
@@ -315,11 +384,16 @@ class GameApi:
         return True, True
 
     def setup_game_session(self, gens: list[int]) -> None:
+        """Method to setup the guessing table.
+
+        Parameters
+        ----------
+        gens : list[int]
+            Which generations the guessing
+            table should contain.
+        """
+
         self.pokemon_db.setup_guessing(gens)
-
-    def update_guessing(self, table: str, dex_num: int, name: str) -> None:
-
-        self.pokemon_db.update_pokemon_name(table, dex_num, name)
 
 
 if __name__ == "__main__":
