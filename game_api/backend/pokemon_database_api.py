@@ -657,7 +657,7 @@ class PokemonDatabase:
         # have to use title, as some Pokémon have two words as names (e.g. Tapu Koko).
         name = name.title()
 
-        query = f'SELECT * FROM {table} WHERE name = "{name}"'
+        query = f'SELECT * FROM {table} WHERE REPLACE(name, ".", "") = "{name}"'
 
         try:
             result = self.cursor.execute(query).fetchall()

@@ -186,14 +186,6 @@ class GameApi:
 
         name = guess.lower().replace("info", "").strip()
 
-        # Special cases.
-        if name == "mr mime":
-            name = "mr. mime"
-        elif name == "mr rime":
-            name = "mr. rime"
-        elif name == "mime jr":
-            name = "mime jr."
-
         if pokemon_list := self.pokemon_db.get_pokemon_by_name("pokemon", name):
             for pokemon in pokemon_list:
                 pokemon.info()
@@ -212,14 +204,6 @@ class GameApi:
         """
 
         name = guess.lower().replace("stats", "").strip()
-
-        # Special cases.
-        if name == "mr mime":
-            name = "mr. mime"
-        elif name == "mr rime":
-            name = "mr. rime"
-        elif name == "mime jr":
-            name = "mime jr."
 
         if pokemon_list := self.pokemon_db.get_pokemon_by_name("pokemon", name):
             for pokemon in pokemon_list:
