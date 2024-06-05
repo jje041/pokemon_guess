@@ -147,9 +147,9 @@ class MainGame:
             elif "stats" in guess:
                 self.game_api.show_pokemon_stats(guess)
             elif "stat" in guess:
-                self.game_api.show_pokemon_by_stat("pokemon", guess)
+                self.game_api.show_pokemon_by_stat("guessing", guess)
             elif "ability" in guess:
-                self.game_api.show_pokemon_by_ability("pokemon", guess)
+                self.game_api.show_pokemon_by_ability("guessing", guess)
             elif any(word in guess for word in keywords):
                 self.game_api.show_pokemon_by_generation_and_type("guessing", guess)
             elif guess == "save":
