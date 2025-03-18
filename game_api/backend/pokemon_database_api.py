@@ -1,5 +1,6 @@
 import re
 import sqlite3
+import unicodedata
 
 from .exceptions_database import (PokemonGenericError,
                                   PokemonInvalidGenerations,
@@ -11,7 +12,7 @@ from .pokemon_data import (generation1, generation2, generation3, generation4,
                            generation9)
 from .pokemon_parser import PokemonParser
 
-__version__ = "2.0.2"
+__version__ = "2.0.3"
 __author__ = "Jørn Olav Jensen"
 
 DATABASE_NAME = "./game_api/backend/pokemon.db"
@@ -40,7 +41,8 @@ pokemon_schema = '''pokemon(dex_num INTEGER PRIMARY KEY ASC,
                             egg_group2 varchar(15), 
                             male NUMERIC(3,1), 
                             female NUMERIC(3,1), 
-                            catch_rate INTEGER NOT NULL
+                            catch_rate INTEGER NOT NULL,
+                            search_name varchar(15) NOT NULL
                             )
                 '''
 
@@ -190,17 +192,29 @@ class PokemonDatabase:
             the information needed for the underlying Pokemon class.
         """
 
+        dex_num, name, gen, type1, type2, HP, ATK, DEF, SP_ATK, SP_DEF, SPD, ability1, ability2, hidden, height, weight, egg_group1, egg_group2, male, female, catch_rate = pokemon_data
+
+        database_tuple = (
+            dex_num, name, gen, type1, type2,
+            HP, ATK, DEF, SP_ATK, SP_DEF, SPD,
+            ability1, ability2, hidden,
+            height, weight,
+            egg_group1, egg_group2,
+            male, female,
+            catch_rate, self._filter_pokemon_name(name)
+        )
+
         query = '''INSERT INTO pokemon(
                         dex_num, name, gen, type1, type2, 
                         HP, ATK, DEF, SP_ATK, SP_DEF, SPD, 
                         ability1, ability2, hidden, 
                         height, weight, 
                         egg_group1, egg_group2, 
-                        male, female, catch_rate
-                    ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        male, female, catch_rate, search_name
+                    ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 '''
 
-        self.cursor.execute(query, pokemon_data)
+        self.cursor.execute(query, database_tuple)
         self.con.commit()
 
     def update_database(self) -> None:
@@ -261,12 +275,12 @@ class PokemonDatabase:
         Parameters
         ----------
         gens : list[int]
-            The list of numbers (generations) to check. 
+            The list of numbers (generations) to check.
 
         Returns
         -------
         bool
-            True if the list is valid, False otherwise. 
+            True if the list is valid, False otherwise.
         """
 
         # Check both the type and the value.
@@ -331,6 +345,17 @@ class PokemonDatabase:
                              |\s*|\(|\)))*$'''
 
         return bool(re.fullmatch(valid_word_pattern, expression))
+
+    def _filter_pokemon_name(self, name: str) -> str:
+        """Convert a Pokémon name to a lower case version
+        removing all special characters and spaces.
+        """
+
+        # Replace all special characters, such as é, á.
+        filtered_name = unicodedata.normalize("NFD", name).encode("ascii", "ignore").decode("utf-8")
+
+        # Only keep ascii characters and numbers.
+        return re.sub(r"[^a-z0-9]", "", filtered_name.lower())
 
     def _construct_sql_query(self, table: str, query: tuple | str) -> str:
         """Helper method for _type_query_parser. This method 
@@ -653,11 +678,15 @@ class PokemonDatabase:
 
         self._connect()
 
-        # Name must be capitalized, as all Pokémon are stored as such
-        # have to use title, as some Pokémon have two words as names (e.g. Tapu Koko).
-        name = name.title()
+        name = name.replace("'", "").replace("-", " ").replace(":", "")
 
-        query = f'SELECT * FROM {table} WHERE REPLACE(name, ".", "") = "{name}"'
+        name = " ".join(word.capitalize() for word in name.split())
+
+        # FIXME: Find better solution.
+        if name == "Kommo O":
+            name = "Kommo o"
+
+        query = f'SELECT * FROM {table} WHERE REPLACE(REPLACE(REPLACE(REPLACE(name, ".", ""), "\'", ""), "-", " "), ":", "") = "{name}"'
 
         try:
             result = self.cursor.execute(query).fetchall()
@@ -919,6 +948,34 @@ class PokemonDatabase:
 
         self._connect()
 
+        # Remove -, making the capitalize method work properly based on spaces alone.
+        name = name.replace("-", " ")
+        name = " ".join(word.capitalize() for word in name.split())
+
+        # FIXME: Make sure the last o in Jangmo-o, Hakamo-o and Kommo-o are not capitalized.
+        # This causes the problem with these Pokémon.
+
+        convert_names = {"Farfetchd": "Farfetch'd",
+                         "Mr Mime": "Mr. Mime",
+                         "Sirfetchd": "Sirfetch'd",
+                         "Mr Rime": "Mr. Rime",
+                         "Ho Oh": "Ho-Oh",
+                         "Jangmo O": "Jangmo-o",
+                         "Hakamo O": "Hakamo-o",
+                         "Kommo O": "Kommo-o",
+                         "Porygon Z": "Porygon-Z",
+                         "Wo Chien": "Wo-Chien",
+                         "Chien Pao": "Chien-Pao",
+                         "Ting Lu": "Ting-Lu",
+                         "Chi Yu": "Chi-Yu",
+                         "Type Null": "Type: Null"
+                         }
+
+        # Convert the name if in the dictionary as a special case, otherwise use default name.
+        name = convert_names.get(name, name)
+
+        print(name)
+
         gen = pokemon_to_add.gen
         type1 = pokemon_to_add.type1
         type2 = pokemon_to_add.type2
@@ -929,7 +986,7 @@ class PokemonDatabase:
             WHERE dex_num = ?
         '''
 
-        self.cursor.execute(update_query, (name.title(), gen, type1, type2, dex_num))
+        self.cursor.execute(update_query, (name, gen, type1, type2, dex_num))
         self.con.commit()
 
         self._close()
