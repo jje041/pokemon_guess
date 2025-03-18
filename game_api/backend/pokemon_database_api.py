@@ -12,7 +12,7 @@ from .pokemon_data import (generation1, generation2, generation3, generation4,
                            generation9)
 from .pokemon_parser import PokemonParser
 
-__version__ = "2.0.3"
+__version__ = "2.0.4"
 __author__ = "Jørn Olav Jensen"
 
 DATABASE_NAME = "./game_api/backend/pokemon.db"
@@ -155,7 +155,14 @@ class PokemonDatabase:
             Which generations of Pokémon to insert. 
         """
 
-        query = 'SELECT * FROM pokemon WHERE ' + ''.join(
+        columns = self._query_helper("pokemon")
+
+        self._connect()
+
+        # Create a SELECT query excluding the last column.
+        selected_columns = ", ".join(columns[:-1])
+
+        query = f'SELECT {selected_columns} FROM pokemon WHERE ' + ''.join(
             f'gen = {gen} OR ' if gen != max(gens) else f'gen = {gen}'
             for gen in gens
         )
@@ -518,6 +525,17 @@ class PokemonDatabase:
 
         return self._construct_sql_query(table, parsed_query)
 
+    def _query_helper(self, table_name: str) -> list:
+
+        self._connect()
+
+        # Get all column names
+        self.cursor.execute(f"PRAGMA table_info({table_name})")
+        columns = [row[1] for row in self.cursor.fetchall()]  # Extract column names
+
+        self._close()
+        return columns
+
     # =================== CONVERTER METHODS ===================
 
     def _convert_to_pokemon(self, database_record: tuple) -> Pokemon:
@@ -619,7 +637,12 @@ class PokemonDatabase:
             If the specified types are invalid.
         """
 
+        columns = self._query_helper("pokemon")
+
         self._connect()
+
+        # Create a SELECT query excluding the last column.
+        selected_columns = ", ".join(columns[:-1])
 
         # Guard against invalid generations.
         if not self._validate_generation(gens):
@@ -634,11 +657,11 @@ class PokemonDatabase:
         gens.sort()
 
         # Construct a query that has every generation requested, no filter on typing (yet).
-        query = f'SELECT * FROM {table} WHERE ' + ''.join(f'gen = {gen} OR ' if gen != max(gens) else f'gen = {gen}' for gen in gens)
+        query = f'SELECT {selected_columns} FROM {table} WHERE ' + ''.join(f'gen = {gen} OR ' if gen != max(gens) else f'gen = {gen}' for gen in gens)
 
         if types:
             # Add filtering on types, if any.
-            type_filter = ' INTERSECT '.join(f'SELECT * FROM {table} WHERE type1="{p_type.title()}" OR type2="{p_type.title()}"' for p_type in types)
+            type_filter = ' INTERSECT '.join(f'SELECT {selected_columns} FROM {table} WHERE type1="{p_type.title()}" OR type2="{p_type.title()}"' for p_type in types)
             query += f' INTERSECT {type_filter}'
 
         result = self.cursor.execute(query).fetchall()
@@ -676,17 +699,15 @@ class PokemonDatabase:
             If an underlying syntax error occurred.
         """
 
+        columns = self._query_helper("pokemon")
+
         self._connect()
 
-        name = name.replace("'", "").replace("-", " ").replace(":", "")
+        # Create a SELECT query excluding the last column.
+        selected_columns = ", ".join(columns[:-1])
+        query = f"SELECT {selected_columns} FROM {table} WHERE search_name = \"{self._filter_pokemon_name(name)}\""
 
-        name = " ".join(word.capitalize() for word in name.split())
-
-        # FIXME: Find better solution.
-        if name == "Kommo O":
-            name = "Kommo o"
-
-        query = f'SELECT * FROM {table} WHERE REPLACE(REPLACE(REPLACE(REPLACE(name, ".", ""), "\'", ""), "-", " "), ":", "") = "{name}"'
+        result = []
 
         try:
             result = self.cursor.execute(query).fetchall()
@@ -756,12 +777,19 @@ class PokemonDatabase:
         if isinstance(max, str) and not max.isdecimal():
             raise ValueError(f"Invalid max value encountered: {max}")
 
-        query = f'SELECT * FROM {table} WHERE {stat} BETWEEN ? AND ? ORDER BY {stat}'
+        columns = self._query_helper("pokemon")
+
+        self._connect()
+
+        # Create a SELECT query excluding the last column.
+        selected_columns = ", ".join(columns[:-1])
+
+        query = f'SELECT {selected_columns} FROM {table} WHERE {stat} BETWEEN ? AND ? ORDER BY {stat}'
         result = self.cursor.execute(query, (min, max)).fetchall()
 
         self._close()
 
-        return self._convert_to_pokemon_list(result)
+        return self._convert_to_pokemon_list(result[:21])
 
     def get_pokemon_by_stat_total(self, table: str, min: int, max: int) -> list[Pokemon]:
         """Method to fetch Pokémon by their stat total, 
@@ -845,14 +873,19 @@ class PokemonDatabase:
             If the ability provided is not of type str. 
         """
 
+        columns = self._query_helper("pokemon")
+
         self._connect()
+
+        # Create a SELECT query excluding the last column.
+        selected_columns = ", ".join(columns[:-1])
 
         if not isinstance(ability, str):
             raise TypeError("Invalid ability type encountered. Ability must be provided as str object.")
 
         ability = ability.title()
 
-        query = f'''SELECT * 
+        query = f'''SELECT {selected_columns} 
                     FROM {table} 
                     WHERE ability1 = ? OR ability2 = ? OR hidden = ?'''
         result = self.cursor.execute(query, (ability, ability, ability)).fetchall()
@@ -900,7 +933,12 @@ class PokemonDatabase:
             # Will get Pokémon that are dragon type or dual type ice and water or water and grass. 
         """
 
+        columns = self._query_helper("pokemon")
+
         self._connect()
+
+        # Create a SELECT query excluding the last column.
+        selected_columns = ", ".join(columns[:-1])
 
         try:
             sql_query = self._type_query_parser(table, expression) if expression else ''
@@ -915,7 +953,7 @@ class PokemonDatabase:
         else:
             gens_query = ''
 
-        sql_query = f'SELECT * FROM ({sql_query}){gens_query}' if sql_query else f'SELECT * FROM {table}{gens_query}'
+        sql_query = f'SELECT {selected_columns} FROM ({sql_query}){gens_query}' if sql_query else f'SELECT * FROM {table}{gens_query}'
 
         try:
             result = self.cursor.execute(sql_query).fetchall()
@@ -948,34 +986,6 @@ class PokemonDatabase:
 
         self._connect()
 
-        # Remove -, making the capitalize method work properly based on spaces alone.
-        name = name.replace("-", " ")
-        name = " ".join(word.capitalize() for word in name.split())
-
-        # FIXME: Make sure the last o in Jangmo-o, Hakamo-o and Kommo-o are not capitalized.
-        # This causes the problem with these Pokémon.
-
-        convert_names = {"Farfetchd": "Farfetch'd",
-                         "Mr Mime": "Mr. Mime",
-                         "Sirfetchd": "Sirfetch'd",
-                         "Mr Rime": "Mr. Rime",
-                         "Ho Oh": "Ho-Oh",
-                         "Jangmo O": "Jangmo-o",
-                         "Hakamo O": "Hakamo-o",
-                         "Kommo O": "Kommo-o",
-                         "Porygon Z": "Porygon-Z",
-                         "Wo Chien": "Wo-Chien",
-                         "Chien Pao": "Chien-Pao",
-                         "Ting Lu": "Ting-Lu",
-                         "Chi Yu": "Chi-Yu",
-                         "Type Null": "Type: Null"
-                         }
-
-        # Convert the name if in the dictionary as a special case, otherwise use default name.
-        name = convert_names.get(name, name)
-
-        print(name)
-
         gen = pokemon_to_add.gen
         type1 = pokemon_to_add.type1
         type2 = pokemon_to_add.type2
@@ -986,7 +996,7 @@ class PokemonDatabase:
             WHERE dex_num = ?
         '''
 
-        self.cursor.execute(update_query, (name, gen, type1, type2, dex_num))
+        self.cursor.execute(update_query, (pokemon_to_add.name, gen, type1, type2, dex_num))
         self.con.commit()
 
         self._close()
