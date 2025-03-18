@@ -66,7 +66,8 @@ guessing_schema = '''guessing(dex_num INTEGER PRIMARY KEY ASC,
                             egg_group2 varchar(15), 
                             male NUMERIC(3,1), 
                             female NUMERIC(3,1), 
-                            catch_rate INTEGER NOT NULL
+                            catch_rate INTEGER NOT NULL,
+                            search_name varchar(15) NOT NULL
                             )
                 '''
 
@@ -175,15 +176,15 @@ class PokemonDatabase:
                         ability1, ability2, hidden, 
                         height, weight, 
                         egg_group1, egg_group2, 
-                        male, female, catch_rate
-                        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        male, female, catch_rate, search_name
+                        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     '''
 
         for pokemon in results:
             # We don't store the name in the guessing table!
             dex_num, _, gen, type1, type2, HP, ATK, DEF, SP_ATK, SP_DEF, SPD, ability1, ability2, hidden, height, weight, egg_group1, egg_group2, male, female, catch_rate = pokemon
             self.cursor.execute(insert_query,
-                                (dex_num, "?", gen, type1, type2, HP, ATK, DEF, SP_ATK, SP_DEF, SPD, ability1, ability2, hidden, height, weight, egg_group1, egg_group2, male, female, catch_rate)
+                                (dex_num, "?", gen, type1, type2, HP, ATK, DEF, SP_ATK, SP_DEF, SPD, ability1, ability2, hidden, height, weight, egg_group1, egg_group2, male, female, catch_rate, "?")
                                 )
 
         self.con.commit()
@@ -989,14 +990,15 @@ class PokemonDatabase:
         gen = pokemon_to_add.gen
         type1 = pokemon_to_add.type1
         type2 = pokemon_to_add.type2
+        search_name = self._filter_pokemon_name(pokemon_to_add.name)
 
         update_query = f'''
             UPDATE {table}
-            SET name = ?, gen = ?, type1 = ?, type2 = ?
+            SET name = ?, gen = ?, type1 = ?, type2 = ?, search_name = ?
             WHERE dex_num = ?
         '''
 
-        self.cursor.execute(update_query, (pokemon_to_add.name, gen, type1, type2, dex_num))
+        self.cursor.execute(update_query, (pokemon_to_add.name, gen, type1, type2, search_name, dex_num))
         self.con.commit()
 
         self._close()
