@@ -954,7 +954,7 @@ class PokemonDatabase:
         else:
             gens_query = ''
 
-        sql_query = f'SELECT {selected_columns} FROM ({sql_query}){gens_query}' if sql_query else f'SELECT * FROM {table}{gens_query}'
+        sql_query = f'SELECT {selected_columns} FROM ({sql_query}){gens_query}' if sql_query else f'SELECT {selected_columns} FROM {table}{gens_query}'
 
         try:
             result = self.cursor.execute(sql_query).fetchall()

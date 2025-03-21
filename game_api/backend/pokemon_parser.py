@@ -41,11 +41,6 @@ class PokemonParser:
         Parses an OR term.
     type() -> str | tuple
         Parses a Pokemon type.
-
-    Raises
-    ------
-    SyntaxError
-        If there is a syntax error in the input query.
     """
 
     def __init__(self, tokens: list[str]) -> None:
@@ -127,23 +122,21 @@ class PokemonParser:
 
     def ptype(self) -> str | tuple:
         """Parses a Pokemon type.
+        Returns empty string upon a syntax
+        error.
 
         Returns
         -------
         str
             The parsed Pokemon type.
-
-        Raises
-        ------
-        SyntaxError
-            If there is a syntax error in the input query.
         """
 
         if self.current_token == "(":
             self.next_token()
             result = self.query()
             if self.current_token != ")":
-                raise SyntaxError("Expected ')'")
+                print("Syntax error: Expected ')'")
+                return ""
 
             self.next_token()
             return result
@@ -154,9 +147,8 @@ class PokemonParser:
             return result
         
         print(self.tokens)
-
-        raise SyntaxError(f"Unexpected token: {self.current_token}")
-
+        print(f"Unexpected token: {self.current_token}")
+        return ""
 
 def tokenize(input: str) -> list[str]:
     """Tokenizes the input string.
