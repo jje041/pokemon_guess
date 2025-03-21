@@ -1,5 +1,6 @@
 import re
 import sqlite3
+import unicodedata
 
 from .exceptions_database import (PokemonGenericError,
                                   PokemonInvalidGenerations,
@@ -11,7 +12,7 @@ from .pokemon_data import (generation1, generation2, generation3, generation4,
                            generation9)
 from .pokemon_parser import PokemonParser
 
-__version__ = "2.0.2"
+__version__ = "2.0.4"
 __author__ = "Jørn Olav Jensen"
 
 DATABASE_NAME = "./game_api/backend/pokemon.db"
@@ -40,7 +41,8 @@ pokemon_schema = '''pokemon(dex_num INTEGER PRIMARY KEY ASC,
                             egg_group2 varchar(15), 
                             male NUMERIC(3,1), 
                             female NUMERIC(3,1), 
-                            catch_rate INTEGER NOT NULL
+                            catch_rate INTEGER NOT NULL,
+                            search_name varchar(15) NOT NULL
                             )
                 '''
 
@@ -64,7 +66,8 @@ guessing_schema = '''guessing(dex_num INTEGER PRIMARY KEY ASC,
                             egg_group2 varchar(15), 
                             male NUMERIC(3,1), 
                             female NUMERIC(3,1), 
-                            catch_rate INTEGER NOT NULL
+                            catch_rate INTEGER NOT NULL,
+                            search_name varchar(15) NOT NULL
                             )
                 '''
 
@@ -153,7 +156,14 @@ class PokemonDatabase:
             Which generations of Pokémon to insert. 
         """
 
-        query = 'SELECT * FROM pokemon WHERE ' + ''.join(
+        columns = self._query_helper("pokemon")
+
+        self._connect()
+
+        # Create a SELECT query excluding the last column.
+        selected_columns = ", ".join(columns[:-1])
+
+        query = f'SELECT {selected_columns} FROM pokemon WHERE ' + ''.join(
             f'gen = {gen} OR ' if gen != max(gens) else f'gen = {gen}'
             for gen in gens
         )
@@ -166,15 +176,15 @@ class PokemonDatabase:
                         ability1, ability2, hidden, 
                         height, weight, 
                         egg_group1, egg_group2, 
-                        male, female, catch_rate
-                        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        male, female, catch_rate, search_name
+                        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     '''
 
         for pokemon in results:
             # We don't store the name in the guessing table!
             dex_num, _, gen, type1, type2, HP, ATK, DEF, SP_ATK, SP_DEF, SPD, ability1, ability2, hidden, height, weight, egg_group1, egg_group2, male, female, catch_rate = pokemon
             self.cursor.execute(insert_query,
-                                (dex_num, "?", gen, type1, type2, HP, ATK, DEF, SP_ATK, SP_DEF, SPD, ability1, ability2, hidden, height, weight, egg_group1, egg_group2, male, female, catch_rate)
+                                (dex_num, "?", gen, type1, type2, HP, ATK, DEF, SP_ATK, SP_DEF, SPD, ability1, ability2, hidden, height, weight, egg_group1, egg_group2, male, female, catch_rate, "?")
                                 )
 
         self.con.commit()
@@ -190,17 +200,29 @@ class PokemonDatabase:
             the information needed for the underlying Pokemon class.
         """
 
+        dex_num, name, gen, type1, type2, HP, ATK, DEF, SP_ATK, SP_DEF, SPD, ability1, ability2, hidden, height, weight, egg_group1, egg_group2, male, female, catch_rate = pokemon_data
+
+        database_tuple = (
+            dex_num, name, gen, type1, type2,
+            HP, ATK, DEF, SP_ATK, SP_DEF, SPD,
+            ability1, ability2, hidden,
+            height, weight,
+            egg_group1, egg_group2,
+            male, female,
+            catch_rate, self._filter_pokemon_name(name)
+        )
+
         query = '''INSERT INTO pokemon(
                         dex_num, name, gen, type1, type2, 
                         HP, ATK, DEF, SP_ATK, SP_DEF, SPD, 
                         ability1, ability2, hidden, 
                         height, weight, 
                         egg_group1, egg_group2, 
-                        male, female, catch_rate
-                    ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        male, female, catch_rate, search_name
+                    ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 '''
 
-        self.cursor.execute(query, pokemon_data)
+        self.cursor.execute(query, database_tuple)
         self.con.commit()
 
     def update_database(self) -> None:
@@ -261,12 +283,12 @@ class PokemonDatabase:
         Parameters
         ----------
         gens : list[int]
-            The list of numbers (generations) to check. 
+            The list of numbers (generations) to check.
 
         Returns
         -------
         bool
-            True if the list is valid, False otherwise. 
+            True if the list is valid, False otherwise.
         """
 
         # Check both the type and the value.
@@ -331,6 +353,17 @@ class PokemonDatabase:
                              |\s*|\(|\)))*$'''
 
         return bool(re.fullmatch(valid_word_pattern, expression))
+
+    def _filter_pokemon_name(self, name: str) -> str:
+        """Convert a Pokémon name to a lower case version
+        removing all special characters and spaces.
+        """
+
+        # Replace all special characters, such as é, á.
+        filtered_name = unicodedata.normalize("NFD", name).encode("ascii", "ignore").decode("utf-8")
+
+        # Only keep ascii characters and numbers.
+        return re.sub(r"[^a-z0-9]", "", filtered_name.lower())
 
     def _construct_sql_query(self, table: str, query: tuple | str) -> str:
         """Helper method for _type_query_parser. This method 
@@ -493,6 +526,17 @@ class PokemonDatabase:
 
         return self._construct_sql_query(table, parsed_query)
 
+    def _query_helper(self, table_name: str) -> list:
+
+        self._connect()
+
+        # Get all column names
+        self.cursor.execute(f"PRAGMA table_info({table_name})")
+        columns = [row[1] for row in self.cursor.fetchall()]  # Extract column names
+
+        self._close()
+        return columns
+
     # =================== CONVERTER METHODS ===================
 
     def _convert_to_pokemon(self, database_record: tuple) -> Pokemon:
@@ -594,7 +638,12 @@ class PokemonDatabase:
             If the specified types are invalid.
         """
 
+        columns = self._query_helper("pokemon")
+
         self._connect()
+
+        # Create a SELECT query excluding the last column.
+        selected_columns = ", ".join(columns[:-1])
 
         # Guard against invalid generations.
         if not self._validate_generation(gens):
@@ -609,11 +658,11 @@ class PokemonDatabase:
         gens.sort()
 
         # Construct a query that has every generation requested, no filter on typing (yet).
-        query = f'SELECT * FROM {table} WHERE ' + ''.join(f'gen = {gen} OR ' if gen != max(gens) else f'gen = {gen}' for gen in gens)
+        query = f'SELECT {selected_columns} FROM {table} WHERE ' + ''.join(f'gen = {gen} OR ' if gen != max(gens) else f'gen = {gen}' for gen in gens)
 
         if types:
             # Add filtering on types, if any.
-            type_filter = ' INTERSECT '.join(f'SELECT * FROM {table} WHERE type1="{p_type.title()}" OR type2="{p_type.title()}"' for p_type in types)
+            type_filter = ' INTERSECT '.join(f'SELECT {selected_columns} FROM {table} WHERE type1="{p_type.title()}" OR type2="{p_type.title()}"' for p_type in types)
             query += f' INTERSECT {type_filter}'
 
         result = self.cursor.execute(query).fetchall()
@@ -651,13 +700,15 @@ class PokemonDatabase:
             If an underlying syntax error occurred.
         """
 
+        columns = self._query_helper("pokemon")
+
         self._connect()
 
-        # Name must be capitalized, as all Pokémon are stored as such
-        # have to use title, as some Pokémon have two words as names (e.g. Tapu Koko).
-        name = name.title()
+        # Create a SELECT query excluding the last column.
+        selected_columns = ", ".join(columns[:-1])
+        query = f"SELECT {selected_columns} FROM {table} WHERE search_name = \"{self._filter_pokemon_name(name)}\""
 
-        query = f'SELECT * FROM {table} WHERE REPLACE(name, ".", "") = "{name}"'
+        result = []
 
         try:
             result = self.cursor.execute(query).fetchall()
@@ -727,12 +778,19 @@ class PokemonDatabase:
         if isinstance(max, str) and not max.isdecimal():
             raise ValueError(f"Invalid max value encountered: {max}")
 
-        query = f'SELECT * FROM {table} WHERE {stat} BETWEEN ? AND ? ORDER BY {stat}'
+        columns = self._query_helper("pokemon")
+
+        self._connect()
+
+        # Create a SELECT query excluding the last column.
+        selected_columns = ", ".join(columns[:-1])
+
+        query = f'SELECT {selected_columns} FROM {table} WHERE {stat} BETWEEN ? AND ? ORDER BY {stat}'
         result = self.cursor.execute(query, (min, max)).fetchall()
 
         self._close()
 
-        return self._convert_to_pokemon_list(result)
+        return self._convert_to_pokemon_list(result[:21])
 
     def get_pokemon_by_stat_total(self, table: str, min: int, max: int) -> list[Pokemon]:
         """Method to fetch Pokémon by their stat total, 
@@ -816,14 +874,19 @@ class PokemonDatabase:
             If the ability provided is not of type str. 
         """
 
+        columns = self._query_helper("pokemon")
+
         self._connect()
+
+        # Create a SELECT query excluding the last column.
+        selected_columns = ", ".join(columns[:-1])
 
         if not isinstance(ability, str):
             raise TypeError("Invalid ability type encountered. Ability must be provided as str object.")
 
         ability = ability.title()
 
-        query = f'''SELECT * 
+        query = f'''SELECT {selected_columns} 
                     FROM {table} 
                     WHERE ability1 = ? OR ability2 = ? OR hidden = ?'''
         result = self.cursor.execute(query, (ability, ability, ability)).fetchall()
@@ -871,7 +934,12 @@ class PokemonDatabase:
             # Will get Pokémon that are dragon type or dual type ice and water or water and grass. 
         """
 
+        columns = self._query_helper("pokemon")
+
         self._connect()
+
+        # Create a SELECT query excluding the last column.
+        selected_columns = ", ".join(columns[:-1])
 
         try:
             sql_query = self._type_query_parser(table, expression) if expression else ''
@@ -886,7 +954,7 @@ class PokemonDatabase:
         else:
             gens_query = ''
 
-        sql_query = f'SELECT * FROM ({sql_query}){gens_query}' if sql_query else f'SELECT * FROM {table}{gens_query}'
+        sql_query = f'SELECT {selected_columns} FROM ({sql_query}){gens_query}' if sql_query else f'SELECT {selected_columns} FROM {table}{gens_query}'
 
         try:
             result = self.cursor.execute(sql_query).fetchall()
@@ -922,14 +990,15 @@ class PokemonDatabase:
         gen = pokemon_to_add.gen
         type1 = pokemon_to_add.type1
         type2 = pokemon_to_add.type2
+        search_name = self._filter_pokemon_name(pokemon_to_add.name)
 
         update_query = f'''
             UPDATE {table}
-            SET name = ?, gen = ?, type1 = ?, type2 = ?
+            SET name = ?, gen = ?, type1 = ?, type2 = ?, search_name = ?
             WHERE dex_num = ?
         '''
 
-        self.cursor.execute(update_query, (name.title(), gen, type1, type2, dex_num))
+        self.cursor.execute(update_query, (pokemon_to_add.name, gen, type1, type2, search_name, dex_num))
         self.con.commit()
 
         self._close()

@@ -88,6 +88,162 @@ class TestPokemonDatabase(unittest.TestCase):
 
         self.assertListEqual([mew], pokemon)
 
+    def test_get_pokemon_by_name_with_type(self) -> None:
+        pokemon = self.db.get_pokemon_by_name('pokemon', 'jellicent')
+
+        jellicent = Pokemon(
+            593, 'Jellicent', 5, 'Water', 'Ghost',
+            {
+                'HP': 100,
+                'ATK': 60,
+                'DEF': 70,
+                'SP_ATK': 85,
+                'SP_DEF': 105,
+                'SPD': 60
+            },
+            {
+                'first': 'Water Absorb',
+                'second': 'Cursed Body',
+                'hidden': 'Damp'
+            },
+            2.2, 135,
+            ('Amorphous', None),
+            (50, 50),
+            60
+        )
+
+        self.assertListEqual([jellicent], pokemon)
+
+    def test_special_pokemon_name1(self) -> None:
+        pokemon = self.db.get_pokemon_by_name('pokemon', 'farfetchd')
+
+        farfetchd = Pokemon(
+            83, "Farfetch'd", 1, 'Normal', 'Flying',
+            {
+                'HP': 52,
+                'ATK': 90,
+                'DEF': 55,
+                'SP_ATK': 58,
+                'SP_DEF': 62,
+                'SPD': 60
+            },
+            {
+                'first': 'Keen Eye',
+                'second': 'Inner Focus',
+                'hidden': 'Defiant'
+            },
+            0.8, 15,
+            ('Field', 'Flying'),
+            (50, 50),
+            45
+        )
+
+        self.assertListEqual([farfetchd], pokemon)
+
+    def test_special_pokemon_name2(self) -> None:
+        pokemon = self.db.get_pokemon_by_name('pokemon', "farfetch'd")
+
+        farfetchd = Pokemon(
+            83, "Farfetch'd", 1, 'Normal', 'Flying',
+            {
+                'HP': 52,
+                'ATK': 90,
+                'DEF': 55,
+                'SP_ATK': 58,
+                'SP_DEF': 62,
+                'SPD': 60
+            },
+            {
+                'first': 'Keen Eye',
+                'second': 'Inner Focus',
+                'hidden': 'Defiant'
+            },
+            0.8, 15,
+            ('Field', 'Flying'),
+            (50, 50),
+            45
+        )
+
+        self.assertListEqual([farfetchd], pokemon)
+
+    def test_special_pokemon_name3(self) -> None:
+        pokemon = self.db.get_pokemon_by_name('pokemon', "Farfetch'd")
+
+        farfetchd = Pokemon(
+            83, "Farfetch'd", 1, 'Normal', 'Flying',
+            {
+                'HP': 52,
+                'ATK': 90,
+                'DEF': 55,
+                'SP_ATK': 58,
+                'SP_DEF': 62,
+                'SPD': 60
+            },
+            {
+                'first': 'Keen Eye',
+                'second': 'Inner Focus',
+                'hidden': 'Defiant'
+            },
+            0.8, 15,
+            ('Field', 'Flying'),
+            (50, 50),
+            45
+        )
+
+        self.assertListEqual([farfetchd], pokemon)
+
+    def test_special_pokemon_name4(self) -> None:
+        pokemon = self.db.get_pokemon_by_name('pokemon', "Farfetchd")
+
+        farfetchd = Pokemon(
+            83, "Farfetch'd", 1, 'Normal', 'Flying',
+            {
+                'HP': 52,
+                'ATK': 90,
+                'DEF': 55,
+                'SP_ATK': 58,
+                'SP_DEF': 62,
+                'SPD': 60
+            },
+            {
+                'first': 'Keen Eye',
+                'second': 'Inner Focus',
+                'hidden': 'Defiant'
+            },
+            0.8, 15,
+            ('Field', 'Flying'),
+            (50, 50),
+            45
+        )
+
+        self.assertListEqual([farfetchd], pokemon)
+
+    def test_special_pokemon_name5(self) -> None:
+        pokemon = self.db.get_pokemon_by_name('pokemon', 'Kommo-o')
+
+        kommo_o = Pokemon(
+            784, "Kommo-o", 7, 'Dragon', 'Fighting',
+            {
+                'HP': 75,
+                'ATK': 110,
+                'DEF': 125,
+                'SP_ATK': 100,
+                'SP_DEF': 105,
+                'SPD': 85
+            },
+            {
+                'first': 'Bulletproof',
+                'second': 'Soundproof',
+                'hidden': 'Overcoat'
+            },
+            1.6, 78.2,
+            ('Dragon', None),
+            (50, 50),
+            45
+        )
+
+        self.assertListEqual([kommo_o], pokemon)
+
     def test_get_pokemon_by_name_capitalized(self) -> None:
         pokemon = self.db.get_pokemon_by_name('pokemon', 'Glimmora')
 

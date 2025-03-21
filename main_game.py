@@ -13,13 +13,14 @@ keywords = {"p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9",
             "bug", "dark", "dragon", "electric", "fairy", "fighting", "fire", "flying", "grass",
             "ground", "ghost", "ice", "normal", "poison", "psychic", "rock", "steel", "water"}
 
-SAVE_GAME_SEPARATOR = 78111114100105115107
+SAVE_GAME_SEPARATOR = "78111114100105115107"
 
 
 class ExitCode(IntEnum):
     ERROR = -1
     OK = 0
     YIELD = 1
+    WIN = 2
 
 
 class MainGame:
@@ -27,7 +28,7 @@ class MainGame:
     def __init__(self) -> None:
         """Method to initialize the MainGame class.
         This includes setting up the game sessions, 
-        finding the Pokémon to use and setting up the score. 
+        finding the Pokémon to use and the score. 
         """
 
         self.game_api = GameApi()
@@ -54,67 +55,69 @@ class MainGame:
         """
 
         instructions = '''
-                ==================== Instructions ====================
-                The goal here is to see if you remember every Pokémon in the Pokédex.
-                Type the Pokémon name in the terminal and hit enter to make your guess.
-                The following commands are implemented to help in your journey:\n
-                1.
-                You can type 'p' to print the Pokédex. This will display the Pokémon you have entered
-                and the ones you are missing, these being displayed by a '?' symbol.
-                Alternatively, you can use 'p1', 'p2', 'p3' and so on... to print only the generation behind p\n
-                In other words, if you want to see only generation 3, type p3. If you want to see generation 4 and 5,
-                you can type p4 p5. 
-                2.
-                You can also write a Pokémon type. Either capitalized or not, i.e. you can type 'Fire' or 'fire'.
-                This will print out all the guessed and not guessed Pokémon of that type. 
-                In particular, not guessed Pokémon are marked with a '?' and correctly guessed Pokémon are shown with their name
-                and corresponding Pokédex number. Doing this will display all the types of the Pokémon. 
-                You can filter the types based on the generations as above. As an example: fire p4 p5
-                will display all generation 4 and 5 Pokémon that are part fire type. 
-                You can also combine different types with AND, OR and NOT (not case sensitive) 
-                operations to filter the display even more, and filtered on generations.\n
-                3.
-                In the terminal you can enter the numbers between 1-8, or any combinations you desire, 
-                you also type the commands in any order, like 3 2 1 is fine.
-                Note that you have to separate the numbers with spaces, only!
-                The game will then run with only the specified generations. All other commands work as before.
-                However, typing p4 when generation 4 is excluded does not display anything.\n
-                4.
-                Typing 'r' will show the number of remaining Pokémon left and how many correct guesses you have.
-                A progress bar showing the percentage is also displayed.\n
-                5.
-                You save the game by typing 'save' and load a previous game with 'load'.
-                These commands will give further instructions for how to load or save.\n
-                6.
-                You can type yield to exit the game, this will show you the Pokémon you missed.\n
-                7. 
-                You can use the stats command to display the stats of a Pokémon. Example: stats mew
-                will display mew's stats. There is also the command stat, this displays all the Pokémon
-                in a given range for a given stat. Example: stat atk 100 120, displays Pokémon that have an
-                attack stat between 100 120 (inclusive). 
-                8. 
-                You can also use the ability command. Example: ability water absorb, will show all 
-                Pokémon with the ability water absorb (includes hidden abilities). 
-                9.
-                Finally! You can type q or exit to quit. This does not show you the Pokémon you missed.
-                Enjoy!\n
+            ==================== Instructions ====================
+            The goal here is to see if you remember every Pokémon in the Pokédex.
+            Type the Pokémon name in the terminal and hit enter to make your guess.
+            The following commands are implemented to help in your journey:\n
+            1.
+            You can type 'p' to print the Pokédex. This will display the Pokémon you have entered
+            and the ones you are missing, these being displayed by a '?' symbol.
+            Alternatively, you can use 'p1', 'p2', 'p3' and so on... to print the corresponding generations.
+            In other words, if you want to see only generation 3, type p3. If you want to see generation 4 and 5,
+            you can type p4 p5.\n
+            2.
+            You can also write a Pokémon type. Either capitalized or not, i.e. you can type 'Fire' or 'fire'.
+            This will print out all the guessed and not guessed Pokémon of that type. 
+            In particular, not guessed Pokémon are marked with a '?' and correctly guessed Pokémon are shown with their name
+            and corresponding Pokédex number. Doing this will display all the types of the Pokémon. 
+            You can filter the types based on the generations as above. As an example: fire p4 p5
+            will display all generation 4 and 5 Pokémon that are part fire type. 
+            You can also combine different types with AND, OR and NOT (not case sensitive) 
+            operations to filter the display even more, and filtered on generations.\n
+            3.
+            In the terminal you can enter the numbers between 1-8, or any combinations you desire, 
+            you also type the commands in any order, like p3 p2 p1 is fine.
+            Note that you have to separate the numbers with spaces, only!
+            The game will then run with only the specified generations. All other commands work as before.
+            However, typing p4 when generation 4 is excluded does not display anything.\n
+            4.
+            Typing 'r' will show the number of remaining Pokémon left and how many correct guesses you have.
+            A progress bar showing the percentage is also displayed.\n
+            5.
+            You save the game by typing 'save' and load a previous game with 'load'.
+            These commands will give further instructions for how to load or save.\n
+            6.
+            You can type yield to exit the game, this will show you the Pokémon you missed.\n
+            7. 
+            You can use the stats command to display the stats of a Pokémon. Example: stats mew
+            will display mew's stats. There is also the command stat, this displays all the Pokémon
+            in a given range for a given stat. Example: stat atk 100 120, displays Pokémon that have an
+            attack stat between 100 120 (both inclusive). 
+            8. 
+            You can also use the ability command. Example: ability water absorb, will show all 
+            Pokémon with the ability water absorb (includes hidden abilities). 
+            9.
+            Finally! You can type q or exit to quit. This does not show you the Pokémon you missed.
+            Enjoy!\n
         '''
 
         print(instructions)
 
-    def _check_guess(self, guess: str) -> None:
+    def _check_guess(self, guess: str, update_score=True) -> bool:
+        """Checks the user guess. If it is correct
+        the score is updated, otherwise a message tells
+        the user that the Pokémon has already been entered.
+        """
 
         valid, guessed = self.game_api.check_pokemon_by_name(guess, self.generations)
 
         if valid:
-            if not guessed:
+            if not guessed and update_score:
                 self.score += 1
-            else:
+            elif update_score:
                 print("Already in the Pokédex.")
-            return
 
-        print("\a", end="")
-        print("Not in the Pokédex. Perhaps a typo?")
+        return valid
 
     def play_game(self) -> None:
         """The main part of the game happens in this method.
@@ -130,12 +133,16 @@ class MainGame:
             guess = input("Enter your guess: ")
             guess = guess.lower()  # Convert input to lower case for easier parsing.
 
-            if guess in {"q", "quit", "exit", ":q"}:
+            if self._check_guess(guess):
+                pass
+            elif guess in {"q", "quit", "exit", ":q"}:
                 self.end_game(ExitCode.OK)
             elif guess in {"yield"}:
                 self.end_game(ExitCode.YIELD)
             elif guess in {"h", "help", ":h"}:
                 self._instructions()
+            elif guess == "clear":
+                os.system("clear")
             elif guess in {"r", "remain", "left", ":r"}:
                 self.game_api.progress(self.score, self.num_pokemon)
             elif guess == "p":
@@ -156,17 +163,19 @@ class MainGame:
                 self.save_game()
             elif guess == "load":
                 self.load_game()
+                print(f"Score after loading is complete: {self.score}")
             elif guess == "update":
                 self.update_data()
             else:
-                self._check_guess(guess)
+                print("\a", end="")
+                print("Not in the Pokédex. Perhaps a typo?")
 
     def update_data(self) -> None:
         """Method to update the data stored
         in the database.
         """
 
-        print("Updating the Pokémon data.")
+        print("Updating the Pokémon data...")
 
         self.game_api.pokemon_db.update_database()
 
@@ -191,6 +200,15 @@ class MainGame:
         """This method saves the current progress of the game.
         The saved game is stored as a file in the saved folder.
         """
+
+        # Get the file contents of the saved directory.
+        save_dir: list[str] = os.listdir("saved")
+
+        print("\nCurrent save files:")
+
+        # Show the user the saved directory contents.
+        for file in save_dir:
+            print(f"\t{file}")
 
         save_name = input("Enter save game name: ")
 
@@ -227,6 +245,8 @@ class MainGame:
         except ValueError:
             self.end_game(ExitCode.ERROR)
 
+        print(f"Score in _load_file_contents_line_247: {self.score}")
+
         gens = []
 
         line = ""
@@ -240,10 +260,15 @@ class MainGame:
         pokemon_names_pos = f.tell()
 
         self.generations = gens
+        self.num_pokemon = self.game_api.find_number_of_pokemon(gens)
+
+        print(f"\nScore in _load_file_contents_line_267: {self.score}")
+        print(f"Generations found in save file, line 268: {self.generations}")
 
         # Recreate the game session from the save file.
         self.game_api.setup_game_session(gens)
 
+        print(f"\nScore in _load_file_contents_line_272: {self.score}")
         # Skip to the Pokémon names.
         f.seek(pokemon_names_pos, 0)
 
@@ -251,7 +276,7 @@ class MainGame:
         for line in f:
             potential_pokemon = line.strip()
             if potential_pokemon != "?":
-                self._check_guess(potential_pokemon)
+                self._check_guess(potential_pokemon, update_score=False)
 
     def load_game(self) -> None:
         """Method to load a saved game. 
@@ -275,11 +300,12 @@ class MainGame:
             # Ask the user to try again, if the request failed.
             print("Couldn't locate save game. Did you make a typo?")
             answer = input("Do you wish to load? [y/n]: ")
-            # Return to exit load, this will continue the program as if nothing happened.
             if answer in {"n", "no", "N", "NO"}:
                 return
-            else:
-                self.load_game()
+            print("Reloading...")
+            self.load_game()
+
+        print(f"Current score in load_game before method returns, line 312: {self.score}")
 
     def end_game(self, exit_code=0) -> None:
         """Method to quit the game.
@@ -304,6 +330,8 @@ class MainGame:
                 for pokemon, guessed in zip(all_pokemon, guessed_pokemon):
                     if guessed.name == "?":
                         print(pokemon)
+            case ExitCode.WIN:  # 2
+                print("Congratulations! You completed the Pokédex!.")
             case _:
                 print("An error has occurred. Exiting.")
 
@@ -316,4 +344,4 @@ if __name__ == "__main__":
 
     guessing_game.setup_game()
     guessing_game.play_game()
-    guessing_game.end_game()
+    guessing_game.end_game(ExitCode.WIN)
