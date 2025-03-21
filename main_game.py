@@ -20,6 +20,7 @@ class ExitCode(IntEnum):
     ERROR = -1
     OK = 0
     YIELD = 1
+    WIN = 2
 
 
 class MainGame:
@@ -102,18 +103,18 @@ class MainGame:
 
         print(instructions)
 
-    def _check_guess(self, guess: str) -> bool:
+    def _check_guess(self, guess: str, update_score=True) -> bool:
         """Checks the user guess. If it is correct
         the score is updated, otherwise a message tells
         the user that the Pokémon has already been entered.
         """
-        
+
         valid, guessed = self.game_api.check_pokemon_by_name(guess, self.generations)
 
         if valid:
-            if not guessed:
+            if not guessed and update_score:
                 self.score += 1
-            else:
+            elif update_score:
                 print("Already in the Pokédex.")
 
         return valid
@@ -140,6 +141,8 @@ class MainGame:
                 self.end_game(ExitCode.YIELD)
             elif guess in {"h", "help", ":h"}:
                 self._instructions()
+            elif guess == "clear":
+                os.system("clear")
             elif guess in {"r", "remain", "left", ":r"}:
                 self.game_api.progress(self.score, self.num_pokemon)
             elif guess == "p":
@@ -160,6 +163,7 @@ class MainGame:
                 self.save_game()
             elif guess == "load":
                 self.load_game()
+                print(f"Score after loading is complete: {self.score}")
             elif guess == "update":
                 self.update_data()
             else:
@@ -197,6 +201,15 @@ class MainGame:
         The saved game is stored as a file in the saved folder.
         """
 
+        # Get the file contents of the saved directory.
+        save_dir: list[str] = os.listdir("saved")
+
+        print("\nCurrent save files:")
+
+        # Show the user the saved directory contents.
+        for file in save_dir:
+            print(f"\t{file}")
+
         save_name = input("Enter save game name: ")
 
         with open(f"saved/{save_name}", "w") as f:
@@ -232,11 +245,11 @@ class MainGame:
         except ValueError:
             self.end_game(ExitCode.ERROR)
 
+        print(f"Score in _load_file_contents_line_247: {self.score}")
+
         gens = []
 
         line = ""
-
-        # TODO: Fix scoring error when loading.
 
         while line != SAVE_GAME_SEPARATOR:
             line = f.readline().strip()
@@ -249,12 +262,13 @@ class MainGame:
         self.generations = gens
         self.num_pokemon = self.game_api.find_number_of_pokemon(gens)
 
-        print(self.score)
+        print(f"\nScore in _load_file_contents_line_267: {self.score}")
+        print(f"Generations found in save file, line 268: {self.generations}")
 
         # Recreate the game session from the save file.
         self.game_api.setup_game_session(gens)
 
-        print(self.score)
+        print(f"\nScore in _load_file_contents_line_272: {self.score}")
         # Skip to the Pokémon names.
         f.seek(pokemon_names_pos, 0)
 
@@ -262,7 +276,7 @@ class MainGame:
         for line in f:
             potential_pokemon = line.strip()
             if potential_pokemon != "?":
-                self._check_guess(potential_pokemon)
+                self._check_guess(potential_pokemon, update_score=False)
 
     def load_game(self) -> None:
         """Method to load a saved game. 
@@ -286,11 +300,12 @@ class MainGame:
             # Ask the user to try again, if the request failed.
             print("Couldn't locate save game. Did you make a typo?")
             answer = input("Do you wish to load? [y/n]: ")
-            # Return to exit load, this will continue the program as if nothing happened.
             if answer in {"n", "no", "N", "NO"}:
                 return
-            else:
-                self.load_game()
+            print("Reloading...")
+            self.load_game()
+
+        print(f"Current score in load_game before method returns, line 312: {self.score}")
 
     def end_game(self, exit_code=0) -> None:
         """Method to quit the game.
@@ -315,6 +330,8 @@ class MainGame:
                 for pokemon, guessed in zip(all_pokemon, guessed_pokemon):
                     if guessed.name == "?":
                         print(pokemon)
+            case ExitCode.WIN:  # 2
+                print("Congratulations! You completed the Pokédex!.")
             case _:
                 print("An error has occurred. Exiting.")
 
@@ -327,4 +344,4 @@ if __name__ == "__main__":
 
     guessing_game.setup_game()
     guessing_game.play_game()
-    guessing_game.end_game()
+    guessing_game.end_game(ExitCode.WIN)
