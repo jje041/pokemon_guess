@@ -262,13 +262,9 @@ class MainGame:
         self.generations = gens
         self.num_pokemon = self.game_api.find_number_of_pokemon(gens)
 
-        print(f"\nScore in _load_file_contents_line_267: {self.score}")
-        print(f"Generations found in save file, line 268: {self.generations}")
-
         # Recreate the game session from the save file.
         self.game_api.setup_game_session(gens)
 
-        print(f"\nScore in _load_file_contents_line_272: {self.score}")
         # Skip to the Pokémon names.
         f.seek(pokemon_names_pos, 0)
 
@@ -304,8 +300,6 @@ class MainGame:
                 return
             print("Reloading...")
             self.load_game()
-
-        print(f"Current score in load_game before method returns, line 312: {self.score}")
 
     def end_game(self, exit_code=0) -> None:
         """Method to quit the game.

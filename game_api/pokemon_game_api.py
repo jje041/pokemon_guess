@@ -243,13 +243,13 @@ class GameApi:
 
         if stat == "total":
             try:
-                all_pokemon = self.pokemon_db.get_pokemon_by_stat_total(table, min_stat, max_stat)
+                all_pokemon, stat_total = self.pokemon_db.get_pokemon_by_stat_total(table, min_stat, max_stat)
             except (ValueError, TypeError) as e:
                 print(f"Error: {e}")
                 return
         else:
             try:
-                all_pokemon = self.pokemon_db.get_pokemon_by_stat(table, stat, min_stat, max_stat)
+                all_pokemon, stat_total = self.pokemon_db.get_pokemon_by_stat(table, stat, min_stat, max_stat)
             except (ValueError, TypeError) as e:
                 print(f"Error: {e}")
                 return
@@ -257,10 +257,8 @@ class GameApi:
         if not all_pokemon:
             print(f"No Pokémon in the range {min_stat}-{max_stat} for the {stat} stat.")
 
-        pok_sort = sorted(all_pokemon)
-
-        for pokemon in pok_sort:
-            print(pokemon)
+        for stat_total, pokemon in zip(stat_total, all_pokemon):
+            print(f"{stat_total}\t{pokemon}")
 
     def show_pokemon_by_ability(self, table: str, guess: str) -> None:
         """Method to show all Pokémon

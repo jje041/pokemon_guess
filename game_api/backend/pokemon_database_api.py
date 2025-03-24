@@ -724,7 +724,7 @@ class PokemonDatabase:
 
         return self._convert_to_pokemon_list(result) if table == "pokemon" else result
 
-    def get_pokemon_by_stat(self, table: str, stat: str, min: int | str, max: int | str) -> list[Pokemon]:
+    def get_pokemon_by_stat(self, table: str, stat: str, min: int | str, max: int | str) -> tuple[list[Pokemon], list[int]]:
         """Method to fetch all Pokémon based on a certain stat
         in a provided range. 
 
@@ -759,8 +759,6 @@ class PokemonDatabase:
             If the min or max types are invalid. ValueError
         """
 
-        self._connect()
-
         valid_stats = {"hp", "atk", "def", "sp_atk", "sp_def", "spd"}
 
         if stat.lower() not in valid_stats:
@@ -785,14 +783,17 @@ class PokemonDatabase:
         # Create a SELECT query excluding the last column.
         selected_columns = ", ".join(columns[:-1])
 
-        query = f'SELECT {selected_columns} FROM {table} WHERE {stat} BETWEEN ? AND ? ORDER BY {stat}'
+        query = f'SELECT {selected_columns}, {stat} FROM {table} WHERE {stat} BETWEEN ? AND ? ORDER BY {stat}'
         result = self.cursor.execute(query, (min, max)).fetchall()
+
+        pokemon = [pokemon_tuple[:21] for pokemon_tuple in result]
+        stat_total = [pokemon_tuple[21] for pokemon_tuple in result]
 
         self._close()
 
-        return self._convert_to_pokemon_list(result[:21])
+        return self._convert_to_pokemon_list(pokemon), stat_total
 
-    def get_pokemon_by_stat_total(self, table: str, min: int, max: int) -> list[Pokemon]:
+    def get_pokemon_by_stat_total(self, table: str, min: int, max: int) -> tuple[list[Pokemon], list[int]]:
         """Method to fetch Pokémon by their stat total, 
         being between min and max. 
 
@@ -820,7 +821,12 @@ class PokemonDatabase:
             If the min or max types are invalid. 
         """
 
+        columns = self._query_helper("pokemon")
+
         self._connect()
+
+        # Create a SELECT query excluding the last column.
+        selected_columns = ", ".join(columns[:-1])
 
         if not isinstance(min, (str, int)):
             raise TypeError("min must be either integer type or string.")
@@ -834,11 +840,8 @@ class PokemonDatabase:
         if isinstance(max, str) and not max.isdecimal():
             raise ValueError(f"Invalid max value encountered: {max}")
 
-        query = f'''SELECT dex_num, name, gen, type1, type2, 
-                           HP, ATK, DEF, SP_ATK, SP_DEF, SPD, 
-                           ability1, ability2, hidden, height, weight, 
-                           egg_group1, egg_group2, male, female, catch_rate FROM (
-                        SELECT *, HP + ATK + DEF + SP_ATK + SP_DEF + SPD AS total 
+        query = f'''SELECT * FROM (
+                        SELECT {selected_columns}, HP + ATK + DEF + SP_ATK + SP_DEF + SPD AS total 
                         FROM {table}
                         ) AS subquery
                     WHERE total BETWEEN {min} AND {max}
@@ -846,9 +849,12 @@ class PokemonDatabase:
 
         result = self.cursor.execute(query).fetchall()
 
+        pokemon = [pokemon_tuple[:21] for pokemon_tuple in result]
+        stat_total = [pokemon_tuple[21] for pokemon_tuple in result]
+
         self._close()
 
-        return self._convert_to_pokemon_list(result)
+        return self._convert_to_pokemon_list(pokemon), stat_total
 
     def get_pokemon_by_ability(self, table: str, ability: str) -> list[Pokemon]:
         """Method to fetch Pokémon that has the provided
