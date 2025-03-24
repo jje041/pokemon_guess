@@ -184,13 +184,18 @@ class GameApi:
             info <name> syntax, not case-sensitive.
         """
 
-        name = guess.lower().replace("info", "").strip()
+        name_or_dex = guess.lower().replace("info", "").strip()
 
-        if pokemon_list := self.pokemon_db.get_pokemon_by_name("pokemon", name):
-            for pokemon in pokemon_list:
+        if name_or_dex.isnumeric():
+            if pokemon := self.pokemon_db.get_pokemon_by_dex_number("guessing", name_or_dex):
                 pokemon.info()
+            else:
+                print(f"No Pokémon with Pokédex number {name_or_dex} in your current generations.")
         else:
-            print(f"No Pokémon named {name}")
+            if pokemon := self.pokemon_db.get_pokemon_by_name("pokemon", name_or_dex):
+                pokemon.info()
+            else:
+                print(f"No Pokémon named {name_or_dex}.")
 
     def show_pokemon_stats(self, guess: str) -> None:
         """Method to display the stats of
@@ -205,9 +210,8 @@ class GameApi:
 
         name = guess.lower().replace("stats", "").strip()
 
-        if pokemon_list := self.pokemon_db.get_pokemon_by_name("pokemon", name):
-            for pokemon in pokemon_list:
-                pokemon.show_stats()
+        if pokemon := self.pokemon_db.get_pokemon_by_name("pokemon", name):
+            pokemon.show_stats()
         else:
             print(f"No Pokémon named {name}")
 
@@ -243,13 +247,13 @@ class GameApi:
 
         if stat == "total":
             try:
-                all_pokemon = self.pokemon_db.get_pokemon_by_stat_total(table, min_stat, max_stat)
+                all_pokemon, stat_total = self.pokemon_db.get_pokemon_by_stat_total(table, min_stat, max_stat)
             except (ValueError, TypeError) as e:
                 print(f"Error: {e}")
                 return
         else:
             try:
-                all_pokemon = self.pokemon_db.get_pokemon_by_stat(table, stat, min_stat, max_stat)
+                all_pokemon, stat_total = self.pokemon_db.get_pokemon_by_stat(table, stat, min_stat, max_stat)
             except (ValueError, TypeError) as e:
                 print(f"Error: {e}")
                 return
@@ -257,10 +261,8 @@ class GameApi:
         if not all_pokemon:
             print(f"No Pokémon in the range {min_stat}-{max_stat} for the {stat} stat.")
 
-        pok_sort = sorted(all_pokemon)
-
-        for pokemon in pok_sort:
-            print(pokemon)
+        for stat_total, pokemon in zip(stat_total, all_pokemon):
+            print(f"{stat_total}\t{pokemon}")
 
     def show_pokemon_by_ability(self, table: str, guess: str) -> None:
         """Method to show all Pokémon
@@ -348,24 +350,19 @@ class GameApi:
             value is True if the Pokémon is in the guessing table.
         """
 
-        try:
-            # Try to pop, if it fails, there is no Pokémon with the provided name.
-            fetched_pokemon = self.pokemon_db.get_pokemon_by_name("pokemon", name).pop(0)
-        except IndexError:
+        if not (fetched_pokemon := self.pokemon_db.get_pokemon_by_name("pokemon", name)):
             return False, False
 
         # Check if the Pokémon is in the generations that are used.
         if fetched_pokemon.gen not in gens:
             return False, False
 
-        try:
-            # Check if the Pokémon is already in the guessing table.
-            self.pokemon_db.get_pokemon_by_name("guessing", name).pop(0)
-        except IndexError:
+        # Check if the Pokémon is already in the guessing table.
+        if self.pokemon_db.get_pokemon_by_name("guessing", name):
+            return True, True
+        else:
             self.pokemon_db.update_pokemon_name("guessing", fetched_pokemon.dex_num, name)
             return True, False
-
-        return True, True
 
     def setup_game_session(self, gens: list[int]) -> None:
         """Method to setup the guessing table.
