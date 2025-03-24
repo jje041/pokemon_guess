@@ -538,7 +538,7 @@ class PokemonDatabase:
         return columns
 
     # =================== CONVERTER METHODS ===================
-
+    
     def _convert_to_pokemon(self, database_record: tuple) -> Pokemon:
         """Helper method to convert a database record to
         a Pokémon object. The received values are not 
@@ -711,7 +711,7 @@ class PokemonDatabase:
         result = []
 
         try:
-            result = self.cursor.execute(query).fetchall()
+            result = self.cursor.execute(query).fetchone()
         except sqlite3.OperationalError as e:
             error_msg = str(e)
 
@@ -972,6 +972,27 @@ class PokemonDatabase:
         self._close()
 
         return self._convert_to_pokemon_list(result)
+
+    def get_pokemon_by_dex_number(self, table: str, dex_num: str) -> Pokemon | None:
+
+        columns = self._query_helper("pokemon")
+
+        self._connect()
+
+        selected_columns = ", ".join(columns[:-1])
+
+        query = f'''SELECT {selected_columns} FROM {table} WHERE dex_num = {dex_num}'''
+
+        try:
+            result = self.cursor.execute(query).fetchone()
+        except sqlite3.OperationalError as e:
+            print(f"Error in 'get_pokemon_by_dex_number' query {query} invalid.")
+            print(f"Error message: {e}")
+            return
+
+        self._close()
+
+        return self._convert_to_pokemon(result) if result else None
 
     def update_pokemon_name(self, table: str, dex_num: int, name: str) -> None:
         """Method to insert a Pokémon into a database,

@@ -184,13 +184,23 @@ class GameApi:
             info <name> syntax, not case-sensitive.
         """
 
-        name = guess.lower().replace("info", "").strip()
+        name_or_dex = guess.lower().replace("info", "").strip()
 
-        if pokemon_list := self.pokemon_db.get_pokemon_by_name("pokemon", name):
+        if name_or_dex.isnumeric():
+            pokemon = self.pokemon_db.get_pokemon_by_dex_number("guessing", name_or_dex)
+
+            if pokemon:
+                pokemon.info()
+                return
+            else:
+                print(f"No Pokémon with Pokédex number {name_or_dex} in your current generations.")
+                return
+
+        if pokemon_list := self.pokemon_db.get_pokemon_by_name("pokemon", name_or_dex):
             for pokemon in pokemon_list:
                 pokemon.info()
         else:
-            print(f"No Pokémon named {name}")
+            print(f"No Pokémon named {name_or_dex}")
 
     def show_pokemon_stats(self, guess: str) -> None:
         """Method to display the stats of
