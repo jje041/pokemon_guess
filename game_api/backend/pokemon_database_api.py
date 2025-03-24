@@ -538,7 +538,7 @@ class PokemonDatabase:
         return columns
 
     # =================== CONVERTER METHODS ===================
-    
+
     def _convert_to_pokemon(self, database_record: tuple) -> Pokemon:
         """Helper method to convert a database record to
         a Pokémon object. The received values are not 
@@ -671,7 +671,7 @@ class PokemonDatabase:
 
         return self._convert_to_pokemon_list(result)
 
-    def get_pokemon_by_name(self, table: str, name: str) -> list[Pokemon]:
+    def get_pokemon_by_name(self, table: str, name: str) -> Pokemon | None:
         """Method to get all the available data
         for the provided Pokémon name.
 
@@ -686,10 +686,9 @@ class PokemonDatabase:
 
         Returns
         -------
-        list[Pokemon]
-            A list of the corresponding Pokémon objects.
-            If the Pokémon does not exist, an empty 
-            list is returned. 
+        Pokemon | None
+            A Pokémon object corresponding to the name provided.
+            If the Pokémon is not found, then None is returned.
 
         Raises
         ------
@@ -706,9 +705,7 @@ class PokemonDatabase:
 
         # Create a SELECT query excluding the last column.
         selected_columns = ", ".join(columns[:-1])
-        query = f"SELECT {selected_columns} FROM {table} WHERE search_name = \"{self._filter_pokemon_name(name)}\""
-
-        result = []
+        query = f'SELECT {selected_columns} FROM {table} WHERE search_name = "{self._filter_pokemon_name(name)}"'
 
         try:
             result = self.cursor.execute(query).fetchone()
@@ -722,7 +719,7 @@ class PokemonDatabase:
         finally:
             self._close()
 
-        return self._convert_to_pokemon_list(result) if table == "pokemon" else result
+        return self._convert_to_pokemon(result) if result else None
 
     def get_pokemon_by_stat(self, table: str, stat: str, min: int | str, max: int | str) -> tuple[list[Pokemon], list[int]]:
         """Method to fetch all Pokémon based on a certain stat
@@ -1009,8 +1006,11 @@ class PokemonDatabase:
             The name of the Pokémon to update the information for.
         """
 
-        # Pop the list, there is only one element in the list.
-        pokemon_to_add = self.get_pokemon_by_name("pokemon", name).pop(0)
+        pokemon_to_add = self.get_pokemon_by_name("pokemon", name)
+
+        if pokemon_to_add is None:
+            print(f"No Pokémon with name {name}")
+            return
 
         self._connect()
 
@@ -1078,8 +1078,10 @@ if __name__ == "__main__":
     print(f"Testing get_pokemon_by_name with: name = {name}.")
     print("==============================================================")
 
-    for pok in test2:
-        print(pok)
+    if test2:
+        print(test2)
+    else:
+        print("Test failed.")
 
     print("\n==============================================================")
     print(f"Testing get_pokemon_by_stat with: STAT = {stat} from {stat_min} to {stat_max}.")

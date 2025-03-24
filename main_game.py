@@ -133,9 +133,7 @@ class MainGame:
             guess = input("Enter your guess: ")
             guess = guess.lower()  # Convert input to lower case for easier parsing.
 
-            if self._check_guess(guess):
-                pass
-            elif guess in {"q", "quit", "exit", ":q"}:
+            if guess in {"q", "quit", "exit", ":q"}:
                 self.end_game(ExitCode.OK)
             elif guess in {"yield"}:
                 self.end_game(ExitCode.YIELD)
@@ -145,6 +143,8 @@ class MainGame:
                 os.system("clear")
             elif guess in {"r", "remain", "left", ":r"}:
                 self.game_api.progress(self.score, self.num_pokemon)
+            elif self._check_guess(guess):
+                pass
             elif guess == "p":
                 # Convert the list of generations into a parsable form.
                 gens = " ".join([f"p{str(gen)}" for gen in self.generations])  # Only use the user specified generations.
