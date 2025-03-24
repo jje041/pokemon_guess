@@ -12,7 +12,7 @@ from .pokemon_data import (generation1, generation2, generation3, generation4,
                            generation9)
 from .pokemon_parser import PokemonParser
 
-__version__ = "2.0.4"
+__version__ = "2.0.5"
 __author__ = "Jørn Olav Jensen"
 
 DATABASE_NAME = "./game_api/backend/pokemon.db"
@@ -530,9 +530,9 @@ class PokemonDatabase:
 
         self._connect()
 
-        # Get all column names
+        # Get all column names.
         self.cursor.execute(f"PRAGMA table_info({table_name})")
-        columns = [row[1] for row in self.cursor.fetchall()]  # Extract column names
+        columns = [row[1] for row in self.cursor.fetchall()]  # Extract column names.
 
         self._close()
         return columns
@@ -783,8 +783,9 @@ class PokemonDatabase:
         query = f'SELECT {selected_columns}, {stat} FROM {table} WHERE {stat} BETWEEN ? AND ? ORDER BY {stat}'
         result = self.cursor.execute(query, (min, max)).fetchall()
 
-        pokemon = [pokemon_tuple[:21] for pokemon_tuple in result]
-        stat_total = [pokemon_tuple[21] for pokemon_tuple in result]
+        # The last column is the stat total, while the rest is the original Pokémon data.
+        pokemon = [pokemon_tuple[:-1] for pokemon_tuple in result]
+        stat_total = [pokemon_tuple[-1] for pokemon_tuple in result]
 
         self._close()
 
@@ -846,8 +847,9 @@ class PokemonDatabase:
 
         result = self.cursor.execute(query).fetchall()
 
-        pokemon = [pokemon_tuple[:21] for pokemon_tuple in result]
-        stat_total = [pokemon_tuple[21] for pokemon_tuple in result]
+        # The last column is the stat total, while the rest is the original Pokémon data.
+        pokemon = [pokemon_tuple[:-1] for pokemon_tuple in result]
+        stat_total = [pokemon_tuple[-1] for pokemon_tuple in result]
 
         self._close()
 
