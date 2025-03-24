@@ -86,7 +86,7 @@ class TestPokemonDatabase(unittest.TestCase):
             45
         )
 
-        self.assertListEqual([mew], pokemon)
+        self.assertEqual(mew, pokemon)
 
     def test_get_pokemon_by_name_with_type(self) -> None:
         pokemon = self.db.get_pokemon_by_name('pokemon', 'jellicent')
@@ -112,7 +112,7 @@ class TestPokemonDatabase(unittest.TestCase):
             60
         )
 
-        self.assertListEqual([jellicent], pokemon)
+        self.assertEqual(jellicent, pokemon)
 
     def test_special_pokemon_name1(self) -> None:
         pokemon = self.db.get_pokemon_by_name('pokemon', 'farfetchd')
@@ -138,7 +138,7 @@ class TestPokemonDatabase(unittest.TestCase):
             45
         )
 
-        self.assertListEqual([farfetchd], pokemon)
+        self.assertEqual(farfetchd, pokemon)
 
     def test_special_pokemon_name2(self) -> None:
         pokemon = self.db.get_pokemon_by_name('pokemon', "farfetch'd")
@@ -164,7 +164,7 @@ class TestPokemonDatabase(unittest.TestCase):
             45
         )
 
-        self.assertListEqual([farfetchd], pokemon)
+        self.assertEqual(farfetchd, pokemon)
 
     def test_special_pokemon_name3(self) -> None:
         pokemon = self.db.get_pokemon_by_name('pokemon', "Farfetch'd")
@@ -190,7 +190,7 @@ class TestPokemonDatabase(unittest.TestCase):
             45
         )
 
-        self.assertListEqual([farfetchd], pokemon)
+        self.assertEqual(farfetchd, pokemon)
 
     def test_special_pokemon_name4(self) -> None:
         pokemon = self.db.get_pokemon_by_name('pokemon', "Farfetchd")
@@ -216,7 +216,7 @@ class TestPokemonDatabase(unittest.TestCase):
             45
         )
 
-        self.assertListEqual([farfetchd], pokemon)
+        self.assertEqual(farfetchd, pokemon)
 
     def test_special_pokemon_name5(self) -> None:
         pokemon = self.db.get_pokemon_by_name('pokemon', 'Kommo-o')
@@ -242,7 +242,7 @@ class TestPokemonDatabase(unittest.TestCase):
             45
         )
 
-        self.assertListEqual([kommo_o], pokemon)
+        self.assertEqual(kommo_o, pokemon)
 
     def test_get_pokemon_by_name_capitalized(self) -> None:
         pokemon = self.db.get_pokemon_by_name('pokemon', 'Glimmora')
@@ -267,12 +267,12 @@ class TestPokemonDatabase(unittest.TestCase):
             (50, 50), 25
         )
 
-        self.assertListEqual([glimmora], pokemon)
+        self.assertEqual(glimmora, pokemon)
 
     def test_get_pokemon_by_name_wrong_name(self) -> None:
         pokemon = self.db.get_pokemon_by_name('pokemon', 'error')
 
-        self.assertListEqual([], pokemon)
+        self.assertEqual(None, pokemon)
 
     def test_get_pokemon_invalid_table(self) -> None:
 
@@ -282,32 +282,32 @@ class TestPokemonDatabase(unittest.TestCase):
     # ============================= GET POKEMON BY STAT =============================
 
     def test_get_pokemon_by_stat_hp(self) -> None:
-        pokemon = self.db.get_pokemon_by_stat('pokemon', 'hp', 0, '10')
+        pokemon, _ = self.db.get_pokemon_by_stat('pokemon', 'hp', 0, '10')
 
         self.assertEqual(3, len(pokemon))
 
     def test_get_pokemon_by_stat_atk(self) -> None:
-        pokemon = self.db.get_pokemon_by_stat('pokemon', 'atk', '150', 200)
-
+        pokemon, _ = self.db.get_pokemon_by_stat('pokemon', 'atk', '150', 200)
+        
         self.assertEqual(9, len(pokemon))
 
     def test_get_pokemon_by_stat_def(self) -> None:
-        pokemon = self.db.get_pokemon_by_stat('pokemon', 'def', '200', '250')
+        pokemon, _ = self.db.get_pokemon_by_stat('pokemon', 'def', '200', '250')
 
         self.assertEqual(4, len(pokemon))
 
     def test_get_pokemon_by_stat_sp_atk(self) -> None:
-        pokemon = self.db.get_pokemon_by_stat('pokemon', 'sp_atk', 160, 180)
+        pokemon, _ = self.db.get_pokemon_by_stat('pokemon', 'sp_atk', 160, 180)
 
         self.assertEqual(1, len(pokemon))
 
     def test_get_pokemon_by_stat_sp_def(self) -> None:
-        pokemon = self.db.get_pokemon_by_stat('pokemon', 'sp_def', '0', '20')
+        pokemon, _ = self.db.get_pokemon_by_stat('pokemon', 'sp_def', '0', '20')
 
         self.assertEqual(6, len(pokemon))
 
     def test_get_pokemon_by_stat_speed(self) -> None:
-        pokemon = self.db.get_pokemon_by_stat('pokemon', 'spd', 150, 200)
+        pokemon, _ = self.db.get_pokemon_by_stat('pokemon', 'spd', 150, 200)
 
         self.assertEqual(5, len(pokemon))
 
@@ -320,7 +320,7 @@ class TestPokemonDatabase(unittest.TestCase):
             self.db.get_pokemon_by_stat('pokemon', 'hp', 'invalid', 'stats')
 
     def test_get_pokemon_by_stat_total(self) -> None:
-        pokemon = self.db.get_pokemon_by_stat_total('pokemon', 670, 720)
+        pokemon, _ = self.db.get_pokemon_by_stat_total('pokemon', 670, 720)
 
         self.assertEqual(23, len(pokemon))
 
