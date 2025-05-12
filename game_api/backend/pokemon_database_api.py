@@ -12,7 +12,7 @@ from .pokemon_data import (generation1, generation2, generation3, generation4,
                            generation9)
 from .pokemon_parser import PokemonParser
 
-__version__ = "2.0.5"
+__version__ = "2.0.6"
 __author__ = "Jørn Olav Jensen"
 
 DATABASE_NAME = "./game_api/backend/pokemon.db"
@@ -360,8 +360,7 @@ class PokemonDatabase:
         """
 
         # Replace all special characters, such as é, á.
-        filtered_name = unicodedata.normalize("NFD", name).encode("ascii", "ignore").decode("utf-8")
-
+        filtered_name = unicodedata.normalize("NFD", name).encode("ascii", "ignore").decode("utf-8").replace("♂", "").replace("♀", "")
         # Only keep ascii characters and numbers.
         return re.sub(r"[^a-z0-9]", "", filtered_name.lower())
 
@@ -993,6 +992,26 @@ class PokemonDatabase:
 
         return self._convert_to_pokemon(result) if result else None
 
+    def _update_special_pokemon_name(self, table: str) -> None:
+        """Helper method to handle the case of the Nidoran Pokémon
+        that share the same name, but have different gender.
+        """
+
+        self._connect()
+
+        update_query = f'''
+            UPDATE {table}
+            SET name = ?, gen = ?, type1 = ?, type2 = ?, search_name = ?
+            WHERE dex_num = ?
+        '''
+
+        self.cursor.execute(update_query, ("Nidoran♀", 1, "Poison", None, "nidoran", 29))
+        self.cursor.execute(update_query, ("Nidoran♂", 1, "Poison", None, "nidoran", 32))
+        self.con.commit()
+
+        self._close()
+
+
     def update_pokemon_name(self, table: str, dex_num: int, name: str) -> None:
         """Method to insert a Pokémon into a database,
         used to update the guessing table. Fills in the generation,
@@ -1009,6 +1028,10 @@ class PokemonDatabase:
         """
 
         pokemon_to_add = self.get_pokemon_by_name("pokemon", name)
+
+        if pokemon_to_add is not None and self._filter_pokemon_name(pokemon_to_add.name) == "nidoran":
+            self._update_special_pokemon_name(table)
+            return
 
         if pokemon_to_add is None:
             print(f"No Pokémon with name {name}")

@@ -1,5 +1,7 @@
 import os
+import re
 import sys
+import unicodedata
 from enum import IntEnum
 from typing import TextIO
 
@@ -103,6 +105,16 @@ class MainGame:
 
         print(instructions)
 
+    def _filter_guess(self, guess: str) -> str:
+        """Convert a Pokémon name to a lower case version
+        removing all special characters and spaces.
+        """
+
+        # Replace all special characters, such as é, á.
+        filtered_name = unicodedata.normalize("NFD", guess).encode("ascii", "ignore").decode("utf-8").replace("♂", "").replace("♀", "")
+        # Only keep ascii characters and numbers.
+        return re.sub(r"[^a-z0-9]", "", filtered_name.lower())
+
     def _check_guess(self, guess: str, update_score=True) -> bool:
         """Checks the user guess. If it is correct
         the score is updated, otherwise a message tells
@@ -112,7 +124,9 @@ class MainGame:
         valid, guessed = self.game_api.check_pokemon_by_name(guess, self.generations)
 
         if valid:
-            if not guessed and update_score:
+            if not guessed and self._filter_guess(guess) == "nidoran" and update_score:
+                self.score += 2
+            elif not guessed and update_score:
                 self.score += 1
             elif update_score:
                 print("Already in the Pokédex.")
